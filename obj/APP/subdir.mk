@@ -7,20 +7,20 @@
 C_SRCS += \
 ../APP/RingMem.c \
 ../APP/app_usb.c \
-../APP/peripheral.c \
-../APP/peripheral_main.c 
+../APP/main.c \
+../APP/peripheral.c 
 
 OBJS += \
 ./APP/RingMem.o \
 ./APP/app_usb.o \
-./APP/peripheral.o \
-./APP/peripheral_main.o 
+./APP/main.o \
+./APP/peripheral.o 
 
 C_DEPS += \
 ./APP/RingMem.d \
 ./APP/app_usb.d \
-./APP/peripheral.d \
-./APP/peripheral_main.d 
+./APP/main.d \
+./APP/peripheral.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
