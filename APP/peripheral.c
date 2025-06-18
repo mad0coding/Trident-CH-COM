@@ -3,8 +3,8 @@
  * Author             : WCH
  * Version            : V1.0
  * Date               : 2018/12/10
- * Description        : ÍâÉè´Ó»ú¶àÁ¬½ÓÓ¦ÓÃ³ÌÐò£¬³õÊ¼»¯¹ã²¥Á¬½Ó²ÎÊý£¬È»ºó¹ã²¥£¬Á¬½ÓÖ÷»úºó£¬
- *                      ÇëÇó¸üÐÂÁ¬½Ó²ÎÊý£¬Í¨¹ý×Ô¶¨Òå·þÎñ´«ÊäÊý¾Ý
+ * Description        : å¤–è®¾ä»Žæœºå¤šè¿žæŽ¥åº”ç”¨ç¨‹åºï¼Œåˆå§‹åŒ–å¹¿æ’­è¿žæŽ¥å‚æ•°ï¼Œç„¶åŽå¹¿æ’­ï¼Œè¿žæŽ¥ä¸»æœºåŽï¼Œ
+ *                      è¯·æ±‚æ›´æ–°è¿žæŽ¥å‚æ•°ï¼Œé€šè¿‡è‡ªå®šä¹‰æœåŠ¡ä¼ è¾“æ•°æ®
  *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
  * Attention: This software (modified or not) and binary are used for 
@@ -90,7 +90,7 @@ static uint8_t scanRspData[] = {
     0x0e, // length of this data
     GAP_ADTYPE_LOCAL_NAME_COMPLETE,
     //'c', 'h','5', '9', '2', ' ', 'b', 'l', 'e', ' ', 'u', 's', 'b',
-	'A', 'i','r', 'P', 'o', 'd', 's', '-', 'E', 'M', 'B', '2', '9', // ÁÙÊ±¸ÄÎªÕâ¸öÃû³Æ
+	'A', 'i','r', 'P', 'o', 'd', 's', '-', 'E', 'M', 'B', '2', '9', // ä¸´æ—¶æ”¹ä¸ºè¿™ä¸ªåç§°
 
     // connection interval range
     0x05, // length of this data
@@ -384,9 +384,9 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
             if(RingMemUSB.CurrentLen > peripheralMTU - 3)
             {
                 RingMemCopy(&RingMemUSB, buf, peripheralMTU - 3);
-                if(app_usb_notify(buf, peripheralMTU - 3)) // ·µ»Ø·Ç0ÊÇ·¢ËÍÊ§°Ü
+                if(app_usb_notify(buf, peripheralMTU - 3)) // è¿”å›žéž0æ˜¯å‘é€å¤±è´¥
                 {
-                    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*80*/2); // ×¼±¸Ö®ºóÖØÐÂ´¥·¢ÖØ·¢
+                    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*80*/2); // å‡†å¤‡ä¹‹åŽé‡æ–°è§¦å‘é‡å‘
                     break;
                 }
                 RingMemDelete(&RingMemUSB, peripheralMTU - 3);
@@ -402,7 +402,7 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
                 RingMemDelete(&RingMemUSB, RingMemUSB.CurrentLen);
             }
         }
-        if(RingMemUSB.RemanentLen > 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // »º´æ×ã¹»ÔòÈ¡ÏûÃ¦ÏìÓ¦
+        if(RingMemUSB.RemanentLen > 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // ç¼“å­˜è¶³å¤Ÿåˆ™å–æ¶ˆå¿™å“åº”
         return (events ^ SBP_PROCESS_USBDATA_EVT);
     }
 

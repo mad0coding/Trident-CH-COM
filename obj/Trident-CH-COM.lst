@@ -1845,7 +1845,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\SRC\RVMSIS/core_
 SetSysClock():
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:65
     }
-    //¸ü¸ÄFLASH clkµÄÇı¶¯ÄÜÁ¦
+    //æ›´æ”¹FLASH clkçš„é©±åŠ¨èƒ½åŠ›
     sys_safe_access_enable();
 2000015c:	ce3e                	sw	a5,28(sp)
 2000015e:	0001                	nop
@@ -2394,7 +2394,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
  */
 __attribute__((interrupt("WCH-Interrupt-fast")))
 __attribute__((section(".highcode")))
-void USB_IRQHandler( void ) /* USBÖĞ¶Ï·şÎñ³ÌĞò,Ê¹ÓÃ¼Ä´æÆ÷×é1 */
+void USB_IRQHandler( void ) /* USBä¸­æ–­æœåŠ¡ç¨‹åº,ä½¿ç”¨å¯„å­˜å™¨ç»„1 */
 {
   USB_DevTransProcess();
 200003c0:	e0003097          	auipc	ra,0xe0003
@@ -5326,7 +5326,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
 00002070 <RTC_InitTime>:
 RTC_InitTime():
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:369
- * @param   s       - ÅäÖÃÃë£¬MAX_S = 59
+ * @param   s       - é…ç½®ç§’ï¼ŒMAX_S = 59
  *
  * @return  none
  */
@@ -5627,7 +5627,7 @@ RTC_GetCycle32k():
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:499
  * @param   none
  *
- * @return  µ±Ç°ÖÜÆÚÊı£¬MAX_CYC = 0xA8BFFFFF = 2831155199
+ * @return  å½“å‰å‘¨æœŸæ•°ï¼ŒMAX_CYC = 0xA8BFFFFF = 2831155199
  */
 uint32_t RTC_GetCycle32k(void)
 {
@@ -5951,7 +5951,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     242e:	0206f693          	andi	a3,a3,32
     2432:	18068363          	beqz	a3,25b8 <Calibration_LSI+0x360>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:220 (discriminator 1)
-            while(!(R8_OSC_CAL_CTRL & RB_OSC_CNT_HALT)); // ÓÃÓÚ¶ªÆú
+            while(!(R8_OSC_CAL_CTRL & RB_OSC_CNT_HALT)); // ç”¨äºä¸¢å¼ƒ
     2436:	05394603          	lbu	a2,83(s2)
     243a:	8a21                	andi	a2,a2,8
     243c:	de6d                	beqz	a2,2436 <Calibration_LSI+0x1de>
@@ -6055,7 +6055,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     24d4:	8aa1                	andi	a3,a3,8
     24d6:	deed                	beqz	a3,24d0 <Calibration_LSI+0x278>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:242
-            i = R16_OSC_CAL_CNT; // ÊµÊ±Ğ£×¼ºó²ÉÑùÖµ
+            i = R16_OSC_CAL_CNT; // å®æ—¶æ ¡å‡†åé‡‡æ ·å€¼
     24d8:	05095603          	lhu	a2,80(s2)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:243
             cnt_offset = (i & 0x3FFF) + R8_OSC_CAL_OV_CNT * 0x3FFF - 2000 * (freq_sys / 1000) / CAB_LSIFQ;
@@ -6339,7 +6339,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     26d4:	0206f693          	andi	a3,a3,32
     26d8:	24068263          	beqz	a3,291c <Calibration_LSI+0x6c4>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:282 (discriminator 1)
-        while(!(R8_OSC_CAL_CTRL & RB_OSC_CNT_HALT)); // ÓÃÓÚ¶ªÆú
+        while(!(R8_OSC_CAL_CTRL & RB_OSC_CNT_HALT)); // ç”¨äºä¸¢å¼ƒ
     26dc:	05394683          	lbu	a3,83(s2)
     26e0:	05390c13          	addi	s8,s2,83
     26e4:	8aa1                	andi	a3,a3,8
@@ -6481,7 +6481,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     27ba:	0001                	nop
     27bc:	0001                	nop
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:307
-        i = R16_OSC_CAL_CNT; // ÊµÊ±Ğ£×¼ºó²ÉÑùÖµ
+        i = R16_OSC_CAL_CNT; // å®æ—¶æ ¡å‡†åé‡‡æ ·å€¼
     27be:	05095683          	lhu	a3,80(s2)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_clk.c:308
         cnt_offset = (i & 0x3FFF) + R8_OSC_CAL_OV_CNT * 0x3FFF -  4000 * (1 << cali_Lv) * (freq_sys / 1000000) / 256 * 1000/(CAB_LSIFQ/256);
@@ -7112,18 +7112,18 @@ int _write(int fd, char *buf, int size)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:353
     {
 #if DEBUG == Debug_UART0
-        while(R8_UART0_TFC == UART_FIFO_SIZE);                  /* µÈ´ıÊı¾İ·¢ËÍ */
-        R8_UART0_THR = *buf++; /* ·¢ËÍÊı¾İ */
+        while(R8_UART0_TFC == UART_FIFO_SIZE);                  /* ç­‰å¾…æ•°æ®å‘é€ */
+        R8_UART0_THR = *buf++; /* å‘é€æ•°æ® */
 #elif DEBUG == Debug_UART1
-        while(R8_UART1_TFC == UART_FIFO_SIZE);                  /* µÈ´ıÊı¾İ·¢ËÍ */
+        while(R8_UART1_TFC == UART_FIFO_SIZE);                  /* ç­‰å¾…æ•°æ®å‘é€ */
     2bfc:	40003737          	lui	a4,0x40003
     2c00:	46a1                	li	a3,8
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:347 (discriminator 1)
     for(i = 0; i < size; i++)
     2c02:	00c7c463          	blt	a5,a2,2c0a <_write+0x10>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:364
-        while(R8_UART3_TFC == UART_FIFO_SIZE);                  /* µÈ´ıÊı¾İ·¢ËÍ */
-        R8_UART3_THR = *buf++; /* ·¢ËÍÊı¾İ */
+        while(R8_UART3_TFC == UART_FIFO_SIZE);                  /* ç­‰å¾…æ•°æ®å‘é€ */
+        R8_UART3_THR = *buf++; /* å‘é€æ•°æ® */
 #endif
     }
     return size;
@@ -7131,25 +7131,25 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     2c06:	8532                	mv	a0,a2
     2c08:	8082                	ret
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:353 (discriminator 1)
-        while(R8_UART1_TFC == UART_FIFO_SIZE);                  /* µÈ´ıÊı¾İ·¢ËÍ */
+        while(R8_UART1_TFC == UART_FIFO_SIZE);                  /* ç­‰å¾…æ•°æ®å‘é€ */
     2c0a:	40b74503          	lbu	a0,1035(a4) # 4000340b <_eusrstack+0x1fffcc0b>
     2c0e:	fea68ee3          	beq	a3,a0,2c0a <_write+0x10>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:354 (discriminator 2)
-        R8_UART1_THR = *buf++; /* ·¢ËÍÊı¾İ */
+        R8_UART1_THR = *buf++; /* å‘é€æ•°æ® */
     2c12:	00f58533          	add	a0,a1,a5
     2c16:	00054503          	lbu	a0,0(a0)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:347 (discriminator 2)
     for(i = 0; i < size; i++)
     2c1a:	0785                	addi	a5,a5,1
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_sys.c:354 (discriminator 2)
-        R8_UART1_THR = *buf++; /* ·¢ËÍÊı¾İ */
+        R8_UART1_THR = *buf++; /* å‘é€æ•°æ® */
     2c1c:	40a70423          	sb	a0,1032(a4)
     2c20:	b7cd                	j	2c02 <_write+0x8>
 
 00002c22 <UART1_BaudRateCfg>:
 UART1_BaudRateCfg():
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_uart1.c:43
- * @param   baudrate    - ²¨ÌØÂÊ
+ * @param   baudrate    - æ³¢ç‰¹ç‡
  *
  * @return  none
  */
@@ -7211,7 +7211,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     UART1_BaudRateCfg(115200);
     2c5c:	37d9                	jal	2c22 <UART1_BaudRateCfg>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_uart1.c:27
-    R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO´ò¿ª£¬´¥·¢µã4×Ö½Ú
+    R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFOæ‰“å¼€ï¼Œè§¦å‘ç‚¹4å­—èŠ‚
     2c5e:	400037b7          	lui	a5,0x40003
     2c62:	f8700713          	li	a4,-121
     2c66:	40e78123          	sb	a4,1026(a5) # 40003402 <_eusrstack+0x1fffcc02>
@@ -7241,16 +7241,16 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
  */
 void USB_DeviceInit(void)
 {
-    R8_USB_CTRL = 0x00; // ÏÈÉè¶¨Ä£Ê½,È¡Ïû RB_UC_CLR_ALL
+    R8_USB_CTRL = 0x00; // å…ˆè®¾å®šæ¨¡å¼,å–æ¶ˆ RB_UC_CLR_ALL
     2c84:	400087b7          	lui	a5,0x40008
     2c88:	00078023          	sb	zero,0(a5) # 40008000 <_eusrstack+0x20001800>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:33
 
-    R8_UEP4_1_MOD = RB_UEP4_RX_EN | RB_UEP4_TX_EN | RB_UEP1_RX_EN | RB_UEP1_TX_EN; // ¶Ëµã4 OUT+IN,¶Ëµã1 OUT+IN
+    R8_UEP4_1_MOD = RB_UEP4_RX_EN | RB_UEP4_TX_EN | RB_UEP1_RX_EN | RB_UEP1_TX_EN; // ç«¯ç‚¹4 OUT+IN,ç«¯ç‚¹1 OUT+IN
     2c8c:	fcc00713          	li	a4,-52
     2c90:	00e78623          	sb	a4,12(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:34
-    R8_UEP2_3_MOD = RB_UEP2_RX_EN | RB_UEP2_TX_EN | RB_UEP3_RX_EN | RB_UEP3_TX_EN; // ¶Ëµã2 OUT+IN,¶Ëµã3 OUT+IN
+    R8_UEP2_3_MOD = RB_UEP2_RX_EN | RB_UEP2_TX_EN | RB_UEP3_RX_EN | RB_UEP3_TX_EN; // ç«¯ç‚¹2 OUT+IN,ç«¯ç‚¹3 OUT+IN
     2c94:	00e786a3          	sb	a4,13(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:36
 
@@ -7292,21 +7292,21 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDri
     R8_USB_DEV_AD = 0x00;
     2cd0:	000781a3          	sb	zero,3(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:48
-    R8_USB_CTRL = RB_UC_DEV_PU_EN | RB_UC_INT_BUSY | RB_UC_DMA_EN; // Æô¶¯USBÉè±¸¼°DMA£¬ÔÚÖĞ¶ÏÆÚ¼äÖĞ¶Ï±êÖ¾Î´Çå³ıÇ°×Ô¶¯·µ»ØNAK
+    R8_USB_CTRL = RB_UC_DEV_PU_EN | RB_UC_INT_BUSY | RB_UC_DMA_EN; // å¯åŠ¨USBè®¾å¤‡åŠDMAï¼Œåœ¨ä¸­æ–­æœŸé—´ä¸­æ–­æ ‡å¿—æœªæ¸…é™¤å‰è‡ªåŠ¨è¿”å›NAK
     2cd4:	02900713          	li	a4,41
     2cd8:	00e78023          	sb	a4,0(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:49
-    R16_PIN_ANALOG_IE |= RB_PIN_USB_IE | RB_PIN_USB_DP_PU;         // ·ÀÖ¹USB¶Ë¿Ú¸¡¿Õ¼°ÉÏÀ­µç×è
+    R16_PIN_ANALOG_IE |= RB_PIN_USB_IE | RB_PIN_USB_DP_PU;         // é˜²æ­¢USBç«¯å£æµ®ç©ºåŠä¸Šæ‹‰ç”µé˜»
     2cdc:	400016b7          	lui	a3,0x40001
     2ce0:	01a6d703          	lhu	a4,26(a3) # 4000101a <_eusrstack+0x1fffa81a>
     2ce4:	0c076713          	ori	a4,a4,192
     2ce8:	00e69d23          	sh	a4,26(a3)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:50
-    R8_USB_INT_FG = 0xFF;                                          // ÇåÖĞ¶Ï±êÖ¾
+    R8_USB_INT_FG = 0xFF;                                          // æ¸…ä¸­æ–­æ ‡å¿—
     2cec:	577d                	li	a4,-1
     2cee:	00e78323          	sb	a4,6(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:51
-    R8_UDEV_CTRL = RB_UD_PD_DIS | RB_UD_PORT_EN;                   // ÔÊĞíUSB¶Ë¿Ú
+    R8_UDEV_CTRL = RB_UD_PD_DIS | RB_UD_PORT_EN;                   // å…è®¸USBç«¯å£
     2cf2:	f8100713          	li	a4,-127
     2cf6:	00e780a3          	sb	a4,1(a5)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/SRC/StdPeriphDriver/CH59x_usbdev.c:52
@@ -8696,9 +8696,9 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:67
 000033ce <HAL_GetInterTempValue>:
 HAL_GetInterTempValue():
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:247
- * @brief   »ñÈ¡ÄÚ²¿ÎÂ¸Ğ²ÉÑùÖµ£¬Èç¹ûÊ¹ÓÃÁËADCÖĞ¶Ï²ÉÑù£¬ĞèÔÚ´Ëº¯ÊıÖĞÔİÊ±ÆÁ±ÎÖĞ¶Ï.
+ * @brief   è·å–å†…éƒ¨æ¸©æ„Ÿé‡‡æ ·å€¼ï¼Œå¦‚æœä½¿ç”¨äº†ADCä¸­æ–­é‡‡æ ·ï¼Œéœ€åœ¨æ­¤å‡½æ•°ä¸­æš‚æ—¶å±è”½ä¸­æ–­.
  *
- * @return  ÄÚ²¿ÎÂ¸Ğ²ÉÑùÖµ.
+ * @return  å†…éƒ¨æ¸©æ„Ÿé‡‡æ ·å€¼.
  */
 uint16_t HAL_GetInterTempValue(void)
 {
@@ -8841,10 +8841,10 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:191
     3472:	01259793          	slli	a5,a1,0x12
     3476:	0207d063          	bgez	a5,3496 <HAL_ProcessEvent+0x56>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:194
-        BLE_RegInit();                                                  // Ğ£×¼RF
+        BLE_RegInit();                                                  // æ ¡å‡†RF
     347a:	102120ef          	jal	ra,1557c <BLE_RegInit>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:196
-        Lib_Calibration_LSI(); // Ğ£×¼ÄÚ²¿RC
+        Lib_Calibration_LSI(); // æ ¡å‡†å†…éƒ¨RC
     347e:	35fd                	jal	336c <Lib_Calibration_LSI>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:198
         tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD));
@@ -9016,7 +9016,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:132
         GetMACAddress(MacAddr);
     358c:	0007f5b7          	lui	a1,0x7f
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:116
-    cfg.tsCB = HAL_GetInterTempValue; // ¸ù¾İÎÂ¶È±ä»¯Ğ£×¼RFºÍÄÚ²¿RC( ´óÓÚ7ÉãÊÏ¶È )
+    cfg.tsCB = HAL_GetInterTempValue; // æ ¹æ®æ¸©åº¦å˜åŒ–æ ¡å‡†RFå’Œå†…éƒ¨RC( å¤§äº7æ‘„æ°åº¦ )
     3590:	00000797          	auipc	a5,0x0
     3594:	e3e78793          	addi	a5,a5,-450 # 33ce <HAL_GetInterTempValue>
     3598:	de3e                	sw	a5,60(sp)
@@ -9024,7 +9024,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:132
         GetMACAddress(MacAddr);
     359a:	4681                	li	a3,0
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:118
-    cfg.rcCB = Lib_Calibration_LSI; // ÄÚ²¿32KÊ±ÖÓĞ£×¼
+    cfg.rcCB = Lib_Calibration_LSI; // å†…éƒ¨32Kæ—¶é’Ÿæ ¡å‡†
     359c:	00000797          	auipc	a5,0x0
     35a0:	dd078793          	addi	a5,a5,-560 # 336c <Lib_Calibration_LSI>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:132
@@ -9033,7 +9033,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:132
     35a6:	05e1                	addi	a1,a1,24
     35a8:	4519                	li	a0,6
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:118
-    cfg.rcCB = Lib_Calibration_LSI; // ÄÚ²¿32KÊ±ÖÓĞ£×¼
+    cfg.rcCB = Lib_Calibration_LSI; // å†…éƒ¨32Kæ—¶é’Ÿæ ¡å‡†
     35aa:	c0be                	sw	a5,64(sp)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:132
         GetMACAddress(MacAddr);
@@ -9049,7 +9049,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:133
         for(i = 0; i < 6; i++)
     35b8:	4699                	li	a3,6
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:135 (discriminator 3)
-            cfg.MacAddr[i] = MacAddr[i]; // Ê¹ÓÃĞ¾Æ¬macµØÖ·
+            cfg.MacAddr[i] = MacAddr[i]; // ä½¿ç”¨èŠ¯ç‰‡macåœ°å€
     35ba:	0070                	addi	a2,sp,12
     35bc:	963e                	add	a2,a2,a5
     35be:	00064603          	lbu	a2,0(a2)
@@ -9114,14 +9114,14 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:223
     HAL_TimeInit();
     3616:	2829                	jal	3630 <HAL_TimeInit>
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:234
-    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // Ìí¼ÓĞ£×¼ÈÎÎñ£¬µ¥´ÎĞ£×¼ºÄÊ±Ğ¡ÓÚ10ms
+    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // æ·»åŠ æ ¡å‡†ä»»åŠ¡ï¼Œå•æ¬¡æ ¡å‡†è€—æ—¶å°äº10ms
     3618:	00044503          	lbu	a0,0(s0)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:237
 }
     361c:	4422                	lw	s0,8(sp)
     361e:	40b2                	lw	ra,12(sp)
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:234
-    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // Ìí¼ÓĞ£×¼ÈÎÎñ£¬µ¥´ÎĞ£×¼ºÄÊ±Ğ¡ÓÚ10ms
+    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // æ·»åŠ æ ¡å‡†ä»»åŠ¡ï¼Œå•æ¬¡æ ¡å‡†è€—æ—¶å°äº10ms
     3620:	0002f637          	lui	a2,0x2f
     3624:	e0060613          	addi	a2,a2,-512 # 2ee00 <_data_lma+0x8d30>
     3628:	6589                	lui	a1,0x2
@@ -9129,7 +9129,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:237
 }
     362a:	0141                	addi	sp,sp,16
 F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/MCU.c:234
-    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // Ìí¼ÓĞ£×¼ÈÎÎñ£¬µ¥´ÎĞ£×¼ºÄÊ±Ğ¡ÓÚ10ms
+    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD)); // æ·»åŠ æ ¡å‡†ä»»åŠ¡ï¼Œå•æ¬¡æ ¡å‡†è€—æ—¶å°äº10ms
     362c:	7900106f          	j	4dbc <tmos_start_task>
 
 00003630 <HAL_TimeInit>:
@@ -9230,7 +9230,7 @@ F:/MyProjects/DevelopmentBoards/Trident-CH/Codes/Trident-CH-COM/HAL/RTC.c:113
     R8_CK32K_CONFIG |= RB_CLK_OSC32K_XT | RB_CLK_XT32K_PON;
     sys_safe_access_disable();
 #endif
-    RTC_InitTime(2020, 1, 1, 0, 0, 0); //RTCÊ±ÖÓ³õÊ¼»¯µ±Ç°Ê±¼ä
+    RTC_InitTime(2020, 1, 1, 0, 0, 0); //RTCæ—¶é’Ÿåˆå§‹åŒ–å½“å‰æ—¶é—´
     36b4:	4781                	li	a5,0
     36b6:	4701                	li	a4,0
     36b8:	4681                	li	a3,0
@@ -9998,21 +9998,21 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
 000039fa <DevEP2_OUT_Deal>:
 DevEP2_OUT_Deal():
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:146
-	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // ¶ÁÈ¡USBÊı¾İµ½»º´æ
+	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // è¯»å–USBæ•°æ®åˆ°ç¼“å­˜
     39fa:	87018793          	addi	a5,gp,-1936 # 200023b0 <pEP2_RAM_Addr>
     39fe:	438c                	lw	a1,0(a5)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:145
-{ /* ÓÃ»§¿É×Ô¶¨Òå */
+{ /* ç”¨æˆ·å¯è‡ªå®šä¹‰ */
     3a00:	1141                	addi	sp,sp,-16
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:146
-	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // ¶ÁÈ¡USBÊı¾İµ½»º´æ
+	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // è¯»å–USBæ•°æ®åˆ°ç¼“å­˜
     3a02:	862a                	mv	a2,a0
     3a04:	50818513          	addi	a0,gp,1288 # 20003048 <RingMemUSB>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:145
-{ /* ÓÃ»§¿É×Ô¶¨Òå */
+{ /* ç”¨æˆ·å¯è‡ªå®šä¹‰ */
     3a08:	c606                	sw	ra,12(sp)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:146
-	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // ¶ÁÈ¡USBÊı¾İµ½»º´æ
+	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // è¯»å–USBæ•°æ®åˆ°ç¼“å­˜
     3a0a:	3321                	jal	3712 <RingMemWrite>
     3a0c:	c519                	beqz	a0,3a1a <DevEP2_OUT_Deal+0x20>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:148
@@ -10021,13 +10021,13 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3a12:	bca50513          	addi	a0,a0,-1078 # 255d8 <devInfoSoftwareRev+0xa0>
     3a16:	0d5200ef          	jal	ra,242ea <puts>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:150
-	if(RingMemUSB.RemanentLen <= 1024){ // »º´æÊ¹ÓÃ¹ı°ë Êµ¼ÊÖ»ÁôÒ»¸öUSB°üµÄ¿Õ¼ä¼´¿É µ«ÕâÀï±£ÊØ´¦Àí
+	if(RingMemUSB.RemanentLen <= 1024){ // ç¼“å­˜ä½¿ç”¨è¿‡åŠ å®é™…åªç•™ä¸€ä¸ªUSBåŒ…çš„ç©ºé—´å³å¯ ä½†è¿™é‡Œä¿å®ˆå¤„ç†
     3a1a:	50818793          	addi	a5,gp,1288 # 20003048 <RingMemUSB>
     3a1e:	4b98                	lw	a4,16(a5)
     3a20:	40000793          	li	a5,1024
     3a24:	00e7ec63          	bltu	a5,a4,3a3c <DevEP2_OUT_Deal+0x42>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:151
-		R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_NAK; // ÉèÎªÃ¦ÏìÓ¦
+		R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_NAK; // è®¾ä¸ºå¿™å“åº”
     3a28:	40008737          	lui	a4,0x40008
     3a2c:	02a74783          	lbu	a5,42(a4) # 4000802a <_eusrstack+0x2000182a>
     3a30:	0f37f793          	andi	a5,a5,243
@@ -10037,7 +10037,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
 }
     3a3c:	40b2                	lw	ra,12(sp)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:153
-    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*32*/8); // ×¼±¸´¥·¢·¢ËÍÈÎÎñ
+    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*32*/8); // å‡†å¤‡è§¦å‘å‘é€ä»»åŠ¡
     3a3e:	81c1c503          	lbu	a0,-2020(gp) # 2000235c <Peripheral_TaskID>
     3a42:	4621                	li	a2,8
     3a44:	02000593          	li	a1,32
@@ -10045,7 +10045,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
 }
     3a48:	0141                	addi	sp,sp,16
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:153
-    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*32*/8); // ×¼±¸´¥·¢·¢ËÍÈÎÎñ
+    tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*32*/8); // å‡†å¤‡è§¦å‘å‘é€ä»»åŠ¡
     3a4a:	3720106f          	j	4dbc <tmos_start_task>
 
 00003a4e <USB_DevTransProcess>:
@@ -10068,7 +10068,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3a6a:	c84a                	sw	s2,16(sp)
     3a6c:	c64e                	sw	s3,12(sp)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:194
-    if ( ( R8_USB_INT_ST & MASK_UIS_TOKEN ) != MASK_UIS_TOKEN )    // ·Ç¿ÕÏĞ
+    if ( ( R8_USB_INT_ST & MASK_UIS_TOKEN ) != MASK_UIS_TOKEN )    // éç©ºé—²
     3a6e:	0077c703          	lbu	a4,7(a5)
     3a72:	03000693          	li	a3,48
     3a76:	03077713          	andi	a4,a4,48
@@ -10093,7 +10093,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3aaa:	4709                	li	a4,2
     3aac:	00e78323          	sb	a4,6(a5) # 40008006 <_eusrstack+0x20001806>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:293
-    if ( R8_USB_INT_ST & RB_UIS_SETUP_ACT )                  // Setup°ü´¦Àí
+    if ( R8_USB_INT_ST & RB_UIS_SETUP_ACT )                  // SetupåŒ…å¤„ç†
     3ab0:	40008737          	lui	a4,0x40008
     3ab4:	00774783          	lbu	a5,7(a4) # 40008007 <_eusrstack+0x20001807>
     3ab8:	07e2                	slli	a5,a5,0x18
@@ -10150,7 +10150,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3b16:	438c                	lw	a1,0(a5)
     3b18:	602200ef          	jal	ra,2411a <memcpy>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:471
-      if ( errflag == 0xff )        // ´íÎó»ò²»Ö§³Ö
+      if ( errflag == 0xff )        // é”™è¯¯æˆ–ä¸æ”¯æŒ
     3b1c:	0ff00793          	li	a5,255
     3b20:	26f40163          	beq	s0,a5,3d82 <USB_DevTransProcess+0x334>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:481
@@ -10176,7 +10176,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3b44:	400087b7          	lui	a5,0x40008
     3b48:	02d78023          	sb	a3,32(a5) # 40008020 <_eusrstack+0x20001820>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:487
-        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_ACK;    // Ä¬ÈÏÊı¾İ°üÊÇDATA1
+        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_ACK;    // é»˜è®¤æ•°æ®åŒ…æ˜¯DATA1
     3b4c:	fc000713          	li	a4,-64
     3b50:	ac2d                	j	3d8a <USB_DevTransProcess+0x33c>
     3b52:	02200693          	li	a3,34
@@ -10221,7 +10221,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3bb8:	4699                	li	a3,6
     3bba:	06d71b63          	bne	a4,a3,3c30 <USB_DevTransProcess+0x1e2>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:205
-                  DevEP0SIZE : SetupReqLen;    // ±¾´Î´«Êä³¤¶È
+                  DevEP0SIZE : SetupReqLen;    // æœ¬æ¬¡ä¼ è¾“é•¿åº¦
     3bbe:	8ba18793          	addi	a5,gp,-1862 # 200023fa <SetupReqLen>
     3bc2:	0007d403          	lhu	s0,0(a5)
     3bc6:	04000713          	li	a4,64
@@ -10229,21 +10229,21 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3bcc:	00877463          	bgeu	a4,s0,3bd4 <USB_DevTransProcess+0x186>
     3bd0:	04000413          	li	s0,64
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:206
-              memcpy( pEP0_DataBuf, pDescr, len ); /* ¼ÓÔØÉÏ´«Êı¾İ */
+              memcpy( pEP0_DataBuf, pDescr, len ); /* åŠ è½½ä¸Šä¼ æ•°æ® */
     3bd4:	86818793          	addi	a5,gp,-1944 # 200023a8 <_edata>
     3bd8:	8bc18913          	addi	s2,gp,-1860 # 200023fc <pDescr>
     3bdc:	4388                	lw	a0,0(a5)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:205
-                  DevEP0SIZE : SetupReqLen;    // ±¾´Î´«Êä³¤¶È
+                  DevEP0SIZE : SetupReqLen;    // æœ¬æ¬¡ä¼ è¾“é•¿åº¦
     3bde:	0442                	slli	s0,s0,0x10
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:206
-              memcpy( pEP0_DataBuf, pDescr, len ); /* ¼ÓÔØÉÏ´«Êı¾İ */
+              memcpy( pEP0_DataBuf, pDescr, len ); /* åŠ è½½ä¸Šä¼ æ•°æ® */
     3be0:	00092583          	lw	a1,0(s2)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:205
-                  DevEP0SIZE : SetupReqLen;    // ±¾´Î´«Êä³¤¶È
+                  DevEP0SIZE : SetupReqLen;    // æœ¬æ¬¡ä¼ è¾“é•¿åº¦
     3be4:	8041                	srli	s0,s0,0x10
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:206
-              memcpy( pEP0_DataBuf, pDescr, len ); /* ¼ÓÔØÉÏ´«Êı¾İ */
+              memcpy( pEP0_DataBuf, pDescr, len ); /* åŠ è½½ä¸Šä¼ æ•°æ® */
     3be6:	8622                	mv	a2,s0
     3be8:	532200ef          	jal	ra,2411a <memcpy>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:207
@@ -10266,7 +10266,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3c04:	400087b7          	lui	a5,0x40008
     3c08:	03378023          	sb	s3,32(a5) # 40008020 <_eusrstack+0x20001820>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:210
-              R8_UEP0_CTRL ^= RB_UEP_T_TOG;                             // ·­×ª
+              R8_UEP0_CTRL ^= RB_UEP_T_TOG;                             // ç¿»è½¬
     3c0c:	0227c703          	lbu	a4,34(a5)
     3c10:	04074713          	xori	a4,a4,64
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:214
@@ -10287,7 +10287,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3c2c:	4709                	li	a4,2
     3c2e:	b7dd                	j	3c14 <USB_DevTransProcess+0x1c6>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:217
-              R8_UEP0_T_LEN = 0;                                      // ×´Ì¬½×¶ÎÍê³ÉÖĞ¶Ï»òÕßÊÇÇ¿ÖÆÉÏ´«0³¤¶ÈÊı¾İ°ü½áÊø¿ØÖÆ´«Êä
+              R8_UEP0_T_LEN = 0;                                      // çŠ¶æ€é˜¶æ®µå®Œæˆä¸­æ–­æˆ–è€…æ˜¯å¼ºåˆ¶ä¸Šä¼ 0é•¿åº¦æ•°æ®åŒ…ç»“æŸæ§åˆ¶ä¼ è¾“
     3c30:	02078023          	sb	zero,32(a5)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:218
               R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
@@ -10439,7 +10439,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3d3c:	83c1                	srli	a5,a5,0x10
     3d3e:	00e7f463          	bgeu	a5,a4,3d46 <USB_DevTransProcess+0x2f8>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:403
-              SetupReqLen = len;      //Êµ¼ÊĞèÉÏ´«×Ü³¤¶È
+              SetupReqLen = len;      //å®é™…éœ€ä¸Šä¼ æ€»é•¿åº¦
     3d42:	8af19d23          	sh	a5,-1862(gp) # 200023fa <SetupReqLen>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:405
                 DevEP0SIZE : SetupReqLen;
@@ -10462,7 +10462,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3d74:	964a                	add	a2,a2,s2
     3d76:	8ac1ae23          	sw	a2,-1860(gp) # 200023fc <pDescr>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:471
-      if ( errflag == 0xff )        // ´íÎó»ò²»Ö§³Ö
+      if ( errflag == 0xff )        // é”™è¯¯æˆ–ä¸æ”¯æŒ
     3d7a:	0ff00793          	li	a5,255
     3d7e:	0af41563          	bne	s0,a5,3e28 <USB_DevTransProcess+0x3da>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:474
@@ -10470,7 +10470,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3d82:	400087b7          	lui	a5,0x40008
     3d86:	fcf00713          	li	a4,-49
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:487
-        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_ACK;    // Ä¬ÈÏÊı¾İ°üÊÇDATA1
+        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_ACK;    // é»˜è®¤æ•°æ®åŒ…æ˜¯DATA1
     3d8a:	02e78123          	sb	a4,34(a5) # 40008022 <_eusrstack+0x20001822>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:490
       R8_USB_INT_FG = RB_UIF_TRANSFER;
@@ -10548,7 +10548,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
               SetupReqLen = 2;
     3e04:	8af19d23          	sh	a5,-1862(gp) # 200023fa <SetupReqLen>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:471
-      if ( errflag == 0xff )        // ´íÎó»ò²»Ö§³Ö
+      if ( errflag == 0xff )        // é”™è¯¯æˆ–ä¸æ”¯æŒ
     3e08:	a005                	j	3e28 <USB_DevTransProcess+0x3da>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:416
             pEP0_DataBuf[0] = DevConfig;
@@ -10568,16 +10568,16 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
     3e20:	00254783          	lbu	a5,2(a0)
     3e24:	8af18c23          	sb	a5,-1864(gp) # 200023f8 <DevConfig>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:478
-        if ( chtype & 0x80 )     // ÉÏ´«
+        if ( chtype & 0x80 )     // ä¸Šä¼ 
     3e28:	04e2                	slli	s1,s1,0x18
     3e2a:	84e1                	srai	s1,s1,0x18
     3e2c:	ce04cce3          	bltz	s1,3b24 <USB_DevTransProcess+0xd6>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:485
-          len = 0;        // ÏÂ´«
+          len = 0;        // ä¸‹ä¼ 
     3e30:	4681                	li	a3,0
     3e32:	bb09                	j	3b44 <USB_DevTransProcess+0xf6>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:427
-            if ( ( pSetupReqPak->bRequestType & USB_REQ_RECIP_MASK ) == USB_REQ_RECIP_ENDP )    // ¶Ëµã
+            if ( ( pSetupReqPak->bRequestType & USB_REQ_RECIP_MASK ) == USB_REQ_RECIP_ENDP )    // ç«¯ç‚¹
     3e34:	01f4f713          	andi	a4,s1,31
     3e38:	4789                	li	a5,2
     3e3a:	f4f714e3          	bne	a4,a5,3d82 <USB_DevTransProcess+0x334>
@@ -10608,7 +10608,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
                   R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~( RB_UEP_R_TOG | MASK_UEP_R_RES ) ) | UEP_R_RES_ACK;
     3e7e:	02f70523          	sb	a5,42(a4)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:471
-      if ( errflag == 0xff )        // ´íÎó»ò²»Ö§³Ö
+      if ( errflag == 0xff )        // é”™è¯¯æˆ–ä¸æ”¯æŒ
     3e82:	b75d                	j	3e28 <USB_DevTransProcess+0x3da>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:435
                   R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~( RB_UEP_R_TOG | MASK_UEP_R_RES ) ) | UEP_R_RES_ACK;
@@ -10626,7 +10626,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_u
                   R8_UEP1_CTRL = ( R8_UEP1_CTRL & ~( RB_UEP_R_TOG | MASK_UEP_R_RES ) ) | UEP_R_RES_ACK;
     3ea2:	02f70323          	sb	a5,38(a4)
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:471
-      if ( errflag == 0xff )        // ´íÎó»ò²»Ö§³Ö
+      if ( errflag == 0xff )        // é”™è¯¯æˆ–ä¸æ”¯æŒ
     3ea6:	b749                	j	3e28 <USB_DevTransProcess+0x3da>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/app_usb.c:454
             pEP0_DataBuf[0] = 0x00;
@@ -11785,7 +11785,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/perip
     4622:	854a                	mv	a0,s2
     4624:	a50ff0ef          	jal	ra,3874 <RingMemCopy>
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/peripheral.c:387
-                if(app_usb_notify(buf, peripheralMTU - 3)) // ·µ»Ø·Ç0ÊÇ·¢ËÍÊ§°Ü
+                if(app_usb_notify(buf, peripheralMTU - 3)) // è¿”å›é0æ˜¯å‘é€å¤±è´¥
     4628:	000ac583          	lbu	a1,0(s5)
     462c:	850a                	mv	a0,sp
     462e:	15f5                	addi	a1,a1,-3
@@ -11802,7 +11802,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/perip
                     break;
     4646:	814e                	mv	sp,s3
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/peripheral.c:405
-        if(RingMemUSB.RemanentLen > 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // »º´æ×ã¹»ÔòÈ¡ÏûÃ¦ÏìÓ¦
+        if(RingMemUSB.RemanentLen > 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // ç¼“å­˜è¶³å¤Ÿåˆ™å–æ¶ˆå¿™å“åº”
     4648:	010a2703          	lw	a4,16(s4)
     464c:	40000793          	li	a5,1024
     4650:	00e7fa63          	bgeu	a5,a4,4664 <Peripheral_ProcessEvent+0x24a>
@@ -11872,7 +11872,7 @@ F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/perip
 000046c4 <main>:
 main():
 F:\MyProjects\DevelopmentBoards\Trident-CH\Codes\Trident-CH-COM\obj/../APP/peripheral_main.c:55
- * @brief   Ö÷º¯Êı
+ * @brief   ä¸»å‡½æ•°
  *
  * @return  none
  */
