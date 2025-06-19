@@ -87,10 +87,11 @@ uint8_t Peripheral_TaskID = INVALID_TASK_ID; // Task ID for internal task/event 
 // GAP - SCAN RSP data (max size = 31 bytes)
 static uint8_t scanRspData[] = {
     // complete name
-    0x0e, // length of this data
+    14, // length of this data
     GAP_ADTYPE_LOCAL_NAME_COMPLETE,
     //'c', 'h','5', '9', '2', ' ', 'b', 'l', 'e', ' ', 'u', 's', 'b',
-	'A', 'i','r', 'P', 'o', 'd', 's', '-', 'E', 'M', 'B', '2', '9', // 临时改为这个名称
+	//'A', 'i','r', 'P', 'o', 'd', 's', '-', 'E', 'M', 'B', '2', '9', // 临时改为这个名称
+    'T', 'r','i', 'd', 'e', 'n', 't', '-', 'C', 'H', '5', '9', '2',
 
     // connection interval range
     0x05, // length of this data
