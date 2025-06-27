@@ -1,3 +1,4 @@
 /.settings
+/.vscode
 /obj/*
 !/obj/Trident-CH-COM.hex

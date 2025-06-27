@@ -12,7 +12,6 @@
 
 #ifndef PERIPHERAL_H
 #define PERIPHERAL_H
-#include "RingMem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +20,7 @@ extern "C" {
 /*********************************************************************
  * INCLUDES
  */
+#include "MiniRingBuf.h"
 
 /*********************************************************************
  * CONSTANTS
@@ -46,10 +46,10 @@ typedef struct
     uint16_t connTimeout;
 } peripheralConnItem_t;
 
-extern RingMemParm_t RingMemUSB;
-extern uint8_t RingMemUSBBuf[2048];
-extern RingMemParm_t RingMemBLE;
-extern uint8_t RingMemBLEBuf[2048];
+extern MiniRingBuf RingBufUSB;
+extern uint8_t RingBufDataUSB[2048];
+extern MiniRingBuf RingBufBLE;
+extern uint8_t RingBufDataBLE[2048];
 extern uint8_t Peripheral_TaskID;
 /*********************************************************************
  * FUNCTIONS

@@ -133,10 +133,10 @@ static peripheralConnItem_t peripheralConnList;
 
 static uint16_t peripheralMTU = ATT_MTU_SIZE;
 
-RingMemParm_t RingMemUSB;
-uint8_t       RingMemUSBBuf[2048];
-RingMemParm_t RingMemBLE;
-uint8_t       RingMemBLEBuf[2048];
+MiniRingBuf RingBufUSB;
+uint8_t RingBufDataUSB[2048];
+MiniRingBuf RingBufBLE;
+uint8_t RingBufDataBLE[2048];
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -277,8 +277,10 @@ void Peripheral_Init()
     // Setup a delayed profile startup
     tmos_set_event(Peripheral_TaskID, SBP_START_DEVICE_EVT);
 
-    RingMemInit(&RingMemUSB, RingMemUSBBuf, 2048, RingMem_Protection);
-    RingMemInit(&RingMemBLE, RingMemBLEBuf, 2048, RingMem_Protection);
+    mrb_init(&RingBufUSB, RingBufDataUSB, 2048, MRB_SET_SKIPWRITE);
+    mrb_init(&RingBufBLE, RingBufDataBLE, 2048, MRB_SET_SKIPWRITE);
+    // RingMemInit(&RingBufUSB, RingBufDataUSB, 2048, RingMem_Protection);
+    // RingMemInit(&RingBufBLE, RingBufDataBLE, 2048, RingMem_Protection);
 }
 
 /*********************************************************************
@@ -379,37 +381,37 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
 
     if(events & SBP_PROCESS_USBDATA_EVT)
     {
-        while(RingMemUSB.CurrentLen)
+        while(mrb_len(&RingBufUSB))
         {
             uint8_t buf[peripheralMTU - 3];
-            if(RingMemUSB.CurrentLen > peripheralMTU - 3)
+            if(mrb_len(&RingBufUSB) > peripheralMTU - 3)
             {
-                RingMemCopy(&RingMemUSB, buf, peripheralMTU - 3);
+                mrb_copy(&RingBufUSB, buf, peripheralMTU - 3);
                 if(app_usb_notify(buf, peripheralMTU - 3)) // 返回非0是发送失败
                 {
                     tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*80*/2); // 准备之后重新触发重发
                     break;
                 }
-                RingMemDelete(&RingMemUSB, peripheralMTU - 3);
+                mrb_del(&RingBufUSB, peripheralMTU - 3);
             }
             else
             {
-                RingMemCopy(&RingMemUSB, buf, RingMemUSB.CurrentLen);
-                if(app_usb_notify(buf, RingMemUSB.CurrentLen))
+                mrb_copy(&RingBufUSB, buf, mrb_len(&RingBufUSB));
+                if(app_usb_notify(buf, mrb_len(&RingBufUSB)))
                 {
                     tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*80*/2);
                     break;
                 }
-                RingMemDelete(&RingMemUSB, RingMemUSB.CurrentLen);
+                mrb_del(&RingBufUSB, mrb_len(&RingBufUSB));
             }
         }
-        if(RingMemUSB.RemanentLen > 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // 缓存足够则取消忙响应
+        if(mrb_len(&RingBufUSB) < 1024) R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_ACK; // 缓存足够则取消忙响应
         return (events ^ SBP_PROCESS_USBDATA_EVT);
     }
 
     if(events & SBP_PROCESS_BLEDATA_EVT)
     {
-        if(RingMemBLE.CurrentLen)
+        if(mrb_len(&RingBufBLE))
         {
             USBSendData();
             tmos_start_task(Peripheral_TaskID, SBP_PROCESS_BLEDATA_EVT, 5);
@@ -796,9 +798,9 @@ void ble_usb_ServiceEvt(uint16_t connection_handle, ble_usb_evt_t *p_evt)
         case BLE_USB_EVT_BLE_DATA_RECIEVED:
             PRINT("BLE RX DATA len:%d\r\n", p_evt->data.length);
 
-            if(RingMemWrite(&RingMemBLE, (uint8_t *)p_evt->data.p_data, p_evt->data.length) != SUCCESS)
+            if(mrb_write(&RingBufBLE, (uint8_t *)p_evt->data.p_data, p_evt->data.length) != SUCCESS)
             {
-                PRINT("RingMemBLE ERR \n");
+                PRINT("RingBufBLE ERR \n");
             }
             tmos_set_event(Peripheral_TaskID, SBP_PROCESS_BLEDATA_EVT);
 

@@ -20,7 +20,6 @@
 #include "ble_usb_service.h"
 #include "app_usb.h"
 #include "peripheral.h"
-#include "RingMem.h"
 
 /*********************************************************************
  * MACROS
@@ -109,15 +108,15 @@ uint8_t USBSendData(void)
     {
         return FAILURE;
     }
-    if(RingMemBLE.CurrentLen > 32)
+    if(mrb_len(&RingBufBLE) > 32)
     {
-        RingMemRead(&RingMemBLE, pEP2_IN_DataBuf, 32);
+        mrb_read(&RingBufBLE, pEP2_IN_DataBuf, 32);
         DevEP2_IN_Deal(32);
     }
     else
     {
-        uint8_t len = RingMemBLE.CurrentLen;
-        RingMemRead(&RingMemBLE, pEP2_IN_DataBuf, len);
+        uint8_t len = mrb_len(&RingBufBLE);
+        mrb_read(&RingBufBLE, pEP2_IN_DataBuf, len);
         DevEP2_IN_Deal(len);
     }
     return SUCCESS;
@@ -143,11 +142,11 @@ void DevEP1_OUT_Deal( uint8_t l )
  */
 void DevEP2_OUT_Deal( uint8_t l )
 { /* 用户可自定义 */
-	if(RingMemWrite(&RingMemUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // 读取USB数据到缓存
+	if(mrb_write(&RingBufUSB, pEP2_OUT_DataBuf, l) != SUCCESS) // 读取USB数据到缓存
 	{
-		PRINT("RingMemBLE ERR \n");
+		PRINT("RingBufBLE ERR \n");
 	}
-	if(RingMemUSB.RemanentLen <= 1024){ // 缓存使用过半 实际只留一个USB包的空间即可 但这里保守处理
+	if(mrb_len(&RingBufUSB) > 1024){ // 缓存使用过半 实际只留一个USB包的空间即可 但这里保守处理
 		R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_NAK; // 设为忙响应
 	}
 	tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*32*/8); // 准备触发发送任务
