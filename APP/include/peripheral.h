@@ -26,18 +26,29 @@ extern "C" {
  * CONSTANTS
  */
 
+
+/*********************************************************************
+ * MACROS
+ */
+#define KEY_STATE			(!GPIOB_ReadPortPin(bRXD0))
+#define LED_INV				GPIOA_InverseBits(bTXD1)
+#define LED_ON				GPIOA_SetBits(bTXD1)
+#define LED_OFF				GPIOA_ResetBits(bTXD1)
+#define LED_SET(state)		do{(state) ? LED_ON : LED_OFF;}while(0)
+
+#define SYS_MODE_COM2UART	1
+#define SYS_MODE_BLE2UART	2
+#define SYS_MODE_COM2BLE	3
+
 // Peripheral Task Events
 #define SBP_START_DEVICE_EVT    0x0001
 #define SBP_PERIODIC_EVT        0x0002
 #define SBP_READ_RSSI_EVT       0x0004
 #define SBP_PARAM_UPDATE_EVT    0x0008
 #define SBP_PHY_UPDATE_EVT      0x0010
-#define SBP_PROCESS_USBDATA_EVT 0x0020
-#define SBP_PROCESS_BLEDATA_EVT 0x0040
+#define SBP_BLE_TX_EVT          0x0020
+#define SBP_USB_TX_EVT          0x0040
 
-/*********************************************************************
- * MACROS
- */
 typedef struct
 {
     uint16_t connHandle; // Connection handle of current connection

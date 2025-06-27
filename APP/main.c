@@ -18,16 +18,6 @@
 #include "peripheral.h"
 #include "app_usb.h"
 
-// Macro
-#define KEY_STATE			(!GPIOB_ReadPortPin(bRXD0))
-#define LED_INV				GPIOA_InverseBits(bTXD1)
-#define LED_ON				GPIOA_SetBits(bTXD1)
-#define LED_OFF				GPIOA_ResetBits(bTXD1)
-#define LED_SET(state)		do{(state) ? LED_ON : LED_OFF;}while(0)
-
-#define SYS_MODE_COM2UART	1
-#define SYS_MODE_BLE2UART	2
-#define SYS_MODE_COM2BLE	3
 
 // Global variables
 uint8_t SysMode = SYS_MODE_COM2BLE;
@@ -111,38 +101,5 @@ int main(void)
     Main_Circulation();
 }
 
-
-__INTERRUPT
-__HIGH_CODE
-void UART1_IRQHandler(void)
-{
-	uint8_t rxBuf[8];
-	uint8_t len;
-
-	switch(UART1_GetITFlag())
-	{
-	case UART_II_LINE_STAT: // 线路状态错误
-		UART1_GetLinSTA();
-		break;
-
-	case UART_II_RECV_RDY: // 数据达到设置触发点
-	case UART_II_RECV_TOUT: // 接收超时，暂时一帧数据接收完成
-		len = UART1_RecvString(rxBuf);
-		if(RingBufRxUART) mrb_write(RingBufRxUART, rxBuf, len);
-		//UART1_SendString(rxBuf, len); // 环回
-
-		break;
-
-	case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
-		LED_INV;
-		break;
-
-	case UART_II_MODEM_CHG: // 只支持串口0
-		break;
-
-	default:
-		break;
-	}
-}
-
 /******************************** endfile @ main ******************************/
+

@@ -279,10 +279,20 @@ void Peripheral_Init()
 
     mrb_init(&RingBuf0, RingBufData0, 2048, MRB_SET_SKIPWRITE);
     mrb_init(&RingBuf1, RingBufData1, 2048, MRB_SET_SKIPWRITE);
-    if(1){ // USB-BLE
+    if(0){ // USB-UART
+        RingBufTxUSB = RingBufRxUART = &RingBuf0;
+        RingBufRxUSB = RingBufTxUART = &RingBuf1;
+        RingBufTxBLE = RingBufRxBLE = NULL;
+    }
+    else if(0){ // USB-BLE
         RingBufTxUSB = RingBufRxBLE = &RingBuf0;
         RingBufRxUSB = RingBufTxBLE = &RingBuf1;
         RingBufTxUART = RingBufRxUART = NULL;
+    }
+    else{ // BLE-UART
+        RingBufTxBLE = RingBufRxUART = &RingBuf0;
+        RingBufRxBLE = RingBufTxUART = &RingBuf1;
+        RingBufTxUSB = RingBufRxUSB = NULL;
     }
 }
 
@@ -382,9 +392,9 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
         return (events ^ SBP_READ_RSSI_EVT);
     }
 
-    if(events & SBP_PROCESS_USBDATA_EVT)
+    if(events & SBP_BLE_TX_EVT)
     {
-        if(!RingBufTxBLE) return (events ^ SBP_PROCESS_USBDATA_EVT);
+        if(!RingBufTxBLE) return (events ^ SBP_BLE_TX_EVT);
         while(mrb_len(RingBufTxBLE))
         {
             uint8_t buf[peripheralMTU - 3];
@@ -392,23 +402,23 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
             if(len > peripheralMTU - 3) len = peripheralMTU - 3; // 限制长度
             mrb_copy(RingBufTxBLE, buf, peripheralMTU - 3);
             if(app_usb_notify(buf, len)){ // 返回非0是发送失败
-                tmos_start_task(Peripheral_TaskID, SBP_PROCESS_USBDATA_EVT, /*80*/2); // 准备之后重新触发重发
+                tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*80*/2); // 准备之后重新触发重发
                 break;
             }
             mrb_del(RingBufTxBLE, len);
         }
         if(mrb_len(RingBufTxBLE) < 1024) R8_UEP2_CTRL = (R8_UEP2_CTRL & ~MASK_UEP_R_RES) | UEP_R_RES_ACK; // 缓存足够则取消忙响应
-        return (events ^ SBP_PROCESS_USBDATA_EVT);
+        return (events ^ SBP_BLE_TX_EVT);
     }
 
-    if(events & SBP_PROCESS_BLEDATA_EVT)
+    if(events & SBP_USB_TX_EVT)
     {
-        if(mrb_len(RingBufRxBLE))
+        if(RingBufTxUSB && mrb_len(RingBufTxUSB))
         {
             USBSendData();
-            tmos_start_task(Peripheral_TaskID, SBP_PROCESS_BLEDATA_EVT, 5);
+            tmos_start_task(Peripheral_TaskID, SBP_USB_TX_EVT, 5);
         }
-        return (events ^ SBP_PROCESS_BLEDATA_EVT);
+        return (events ^ SBP_USB_TX_EVT);
     }
 
     // Discard unknown events
@@ -794,7 +804,7 @@ void ble_usb_ServiceEvt(uint16_t connection_handle, ble_usb_evt_t *p_evt)
             {
                 PRINT("RingBufRx BLE ERR \n");
             }
-            tmos_set_event(Peripheral_TaskID, SBP_PROCESS_BLEDATA_EVT);
+            tmos_set_event(Peripheral_TaskID, SBP_USB_TX_EVT);
 
             break;
         default:
@@ -833,24 +843,50 @@ uint8_t app_usb_notify(uint8_t *SendBuf, uint8_t l)
     return result;
 }
 
+
 /*********************************************************************
- * @fn      RingMem_Protection
+ * @fn      UART1_IRQHandler
  *
- * @brief   Protect RingMem
+ * @brief   UART1 interrupt
  *
- * @return  Success or Failure
+ * @return  none
  */
-int RingMem_Protection(uint8_t enable)
+__INTERRUPT
+__HIGH_CODE
+void UART1_IRQHandler(void)
 {
-    if(enable)
-    {
-        PFIC_DisableAllIRQ();
-    }
-    else
-    {
-        PFIC_EnableAllIRQ();
-    }
-		return 0;
+	uint8_t rxBuf[8];
+	uint8_t len;
+
+	switch(UART1_GetITFlag())
+	{
+	case UART_II_LINE_STAT: // 线路状态错误
+		UART1_GetLinSTA();
+		break;
+
+	case UART_II_RECV_RDY: // 数据达到设置触发点
+	case UART_II_RECV_TOUT: // 接收超时，暂时一帧数据接收完成
+		len = UART1_RecvString(rxBuf);
+        if(!RingBufRxUART) break;
+		mrb_write(RingBufRxUART, rxBuf, len);
+		//UART1_SendString(rxBuf, len); // 环回
+        if(RingBufTxUSB) tmos_set_event(Peripheral_TaskID, SBP_USB_TX_EVT);
+        else if(RingBufTxBLE) tmos_set_event(Peripheral_TaskID, SBP_BLE_TX_EVT);
+
+        LED_INV;
+
+		break;
+
+	case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
+		//LED_INV;
+		break;
+
+	case UART_II_MODEM_CHG: // 只支持串口0
+		break;
+
+	default:
+		break;
+	}
 }
 
 /*********************************************************************
