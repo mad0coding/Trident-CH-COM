@@ -165,14 +165,9 @@ MRB_TYPE_USE mrb_copy(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 	for(len = 0; len < tmpLen && mrb->start + len < mrb->size;){
 		*buf++ = mrb->buf[mrb->start + len++];
 	}
-	while(len < tmpLen && 1){
+	while(len < tmpLen){
 		*buf++ = mrb->buf[mrb->start + len++ - mrb->size];
 	}
-	// while(len--){
-	// 	//MRB_read_one(mrb, *buf++);
-	// 	(item) = mrb->buf[mrb->start++];
-	// 	if(mrb->start >= mrb->size){ mrb->start = 0; }
-	// }
 #elif MRB_COPY_METHOD == MRB_COPY_METHOD_MEMCPY || MRB_COPY_METHOD == MRB_COPY_METHOD_MRBCPY
 	tmpLen = mrb->size - mrb->start;
 	if(len < tmpLen){
@@ -186,10 +181,6 @@ MRB_TYPE_USE mrb_copy(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 #else
 	#error "MRB_COPY_METHOD ERROR!"
 #endif
-
-// #if (MRB_CALLBACK_EMPTY)
-// 	if(mrb->callback && MRB_empty(mrb)) mrb->callback(mrb, MRB_CALLBACK_EMPTY);
-// #endif
 
 #if (MRB_CRITICAL_EN)
 	MRB_CRITICAL_END(mrb);
@@ -265,7 +256,7 @@ MRB_TYPE_USE mrb_read(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 }
 
 /* write to mrb */
-MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
+MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, const MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 {
 	MRB_TYPE_SIZE tmpLen;
 #if (MRB_SISO_SAFE)
@@ -333,124 +324,51 @@ MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 
 #if MRB_COPY_METHOD == MRB_COPY_METHOD_MRBCPY
 /* a simple memcpy function for 32bit core */
-void* mrb_memcpy(void *dest, const void *src, size_t n) {
+void* mrb_memcpy(void *dest, const void *src, uint32_t n)
+{
     uint8_t *d = (uint8_t *)dest;
     const uint8_t *s = (const uint8_t *)src;
 
-    if(((uintptr_t)d & 3) == ((uintptr_t)s & 3)){ // 4-byte aligned
-        while(((uintptr_t)d & 3) && n > 0){ // copy unaligned bytes
+    if(((uintptr_t)d & 0x03) == ((uintptr_t)s & 0x03)){ // 4-byte aligned
+        while(((uintptr_t)d & 0x03) && n > 0){ // copy unaligned bytes
 			n--;
             *d++ = *s++;
         }
 
-        // 主体：使用uint32_t块复制
+        // use uint32_t to copy
         uint32_t *dw = (uint32_t *)d;
         const uint32_t *sw = (const uint32_t *)s;
-        size_t n_words = n >> 2;   // n / 4
-        for(size_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy words
+        uint32_t n_words = n >> 2; // n / 4
+        for(uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy words
 
-        // 更新指针，准备处理剩余字节update the pointer for the remain copy
+        // update the pointer for remaining data
         d = (uint8_t *)(dw + n_words);
         s = (const uint8_t *)(sw + n_words);
-        n &= 3; // n % 4
+        n &= 0x03; // n % 4
     }
-    else if (((uintptr_t)d & 1) == ((uintptr_t)s & 1)) { // 2-byte aligned
-        if((uintptr_t)d & 1 && n > 0){ // copy unaligned byte
+    else if (((uintptr_t)d & 0x01) == ((uintptr_t)s & 0x01)) { // 2-byte aligned
+        if(((uintptr_t)d & 0x01) && n > 0){ // copy unaligned byte
 			n--;
             *d++ = *s++;
         }
 
-        // 主体：使用uint16_t块复制
+        // use uint16_t to copy
         uint16_t *dw = (uint16_t *)d;
         const uint16_t *sw = (const uint16_t *)s;
-        size_t n_words = n >> 1; // n / 2
-        for (size_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy halfwords
+        uint32_t n_words = n >> 1; // n / 2
+        for (uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy halfwords
 
-        // 更新指针，准备处理剩余字节
+        // update the pointer for remaining data
         d = (uint8_t *)(dw + n_words);
         s = (const uint8_t *)(sw + n_words);
-        n &= 1; // n % 2
+        n &= 0x01; // n % 2
     }
 	// else unaligned
 
-    for(size_t i = 0; i < n; i++) d[i] = s[i]; // copy all remaining bytes
+    for(uint32_t i = 0; i < n; i++) d[i] = s[i]; // copy all remaining bytes
 
     return dest;
 }
-// 判断两个地址是否对齐到 N 字节
-//#define IS_ALIGNED_TO(ptr, n) (((uintptr_t)(ptr) & ((n) - 1)) == 0)
-
-// void *mrb_memcpy(void *dest, const void *src, size_t n) {
-//     uint8_t *d = (uint8_t *)dest;
-//     const uint8_t *s = (const uint8_t *)src;
-
-//     // uintptr_t d_addr = (uintptr_t)d;
-//     // uintptr_t s_addr = (uintptr_t)s;
-// 	uint32_t d_addr = (uint32_t)d;
-//     uint32_t s_addr = (uint32_t)s;
-
-// 	//printf("dest:%d	src:%d	d_addr:%d	s_addr:%d\n", (uint32_t)dest, (uint32_t)src, d_addr, s_addr);
-
-//     // 计算两者地址差
-//     //uintptr_t offset = d_addr - s_addr;
-
-//     // 首先处理前导字节，直到两个指针都对齐到2字节、4字节
-//     // while(n > 0 && ((d_addr & 0x01) != (s_addr & 0x01))){
-//     //     *d++ = *s++;
-//     //     d_addr++;
-//     //     s_addr++;
-//     //     n--;
-//     // }
-
-//     // 如果两者地址的最低两位相同，就可以尝试4字节对齐
-//     if((d_addr & 0x03) == (s_addr & 0x03)) {
-// 		//printf("d_addr:%d\n", d_addr);
-//         // 先处理不足4字节的部分（最多处理 0~3 字节，直到4字节对齐）
-//         while ((d_addr & 0x03) && n > 0) {
-// 			//printf("a\n");
-//             *d++ = *s++;
-//             d_addr++;
-//             s_addr++;
-//             n--;
-//         }
-
-//         // 执行4字节块复制
-//         uint32_t *dw = (uint32_t *)d;
-//         const uint32_t *sw = (const uint32_t *)s;
-
-//         size_t n_words = n >> 2; // n / 4
-//         for(size_t i = 0; i < n_words; ++i) dw[i] = sw[i]; // copy words
-
-//         d = (uint8_t *)(dw + n_words);
-//         s = (const uint8_t *)(sw + n_words);
-//         n &= 0x03; // n % 4
-//     }
-// 	else if((d_addr & 0x01) == (s_addr & 0x01)){
-// 		//printf("d_addr:%d\n", d_addr);
-//         // 如果最低1位对齐一致但不是4字节对齐，尝试2字节复制
-//         if((d_addr & 0x01) && n > 0){
-// 			//printf("b\n");
-//             *d++ = *s++;
-//             d_addr++;
-//             s_addr++;
-//             n--;
-//         }
-
-//         uint16_t *dw = (uint16_t *)d;
-//         const uint16_t *sw = (const uint16_t *)s;
-
-//         size_t n_words = n >> 1; // n / 2
-//         for(size_t i = 0; i < n_words; ++i) dw[i] = sw[i]; // copy halfwords
-
-//         d = (uint8_t *)(dw + n_words);
-//         s = (const uint8_t *)(sw + n_words);
-//         n &= 0x01; // n % 2
-//     }
-
-//     for(size_t i = 0; i < n; ++i) d[i] = s[i]; // copy all remaining bytes
-
-//     return dest;
-// }
 #endif
 
 

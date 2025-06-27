@@ -87,7 +87,7 @@ int main(void)
 	UART1_BaudRateCfg(115200);
     R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO打开
     R8_UART1_LCR = RB_LCR_WORD_SZ; // 8bit数据
-    R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY; // 使能输出 使能接收中断
+    R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY | RB_IER_THR_EMPTY; // 使能输出 使能接收中断 发送完成中断
     R8_UART1_DIV = 1;
 	R16_PIN_ALTERNATE |= RB_PIN_UART1; // 引脚重映射
 	UART1_ByteTrigCfg(UART_4BYTE_TRIG); // FIFO触发点4字节
@@ -117,31 +117,32 @@ __HIGH_CODE
 void UART1_IRQHandler(void)
 {
 	uint8_t rxBuf[8];
-    uint8_t len;
-LED_INV;
-    switch(UART1_GetITFlag())
-    {
-        case UART_II_LINE_STAT: // 线路状态错误
-        {
-            UART1_GetLinSTA();
-            break;
-        }
+	uint8_t len;
 
-        case UART_II_RECV_RDY: // 数据达到设置触发点
-		case UART_II_RECV_TOUT: // 接收超时，暂时一帧数据接收完成
-			len = UART1_RecvString(rxBuf);
-            UART1_SendString(rxBuf, len); // 环回
-            break;
+	switch(UART1_GetITFlag())
+	{
+	case UART_II_LINE_STAT: // 线路状态错误
+		UART1_GetLinSTA();
+		break;
 
-        case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
-            break;
+	case UART_II_RECV_RDY: // 数据达到设置触发点
+	case UART_II_RECV_TOUT: // 接收超时，暂时一帧数据接收完成
+		len = UART1_RecvString(rxBuf);
+		if(RingBufRxUART) mrb_write(RingBufRxUART, rxBuf, len);
+		//UART1_SendString(rxBuf, len); // 环回
 
-        case UART_II_MODEM_CHG: // 只支持串口0
-            break;
+		break;
 
-        default:
-            break;
-    }
+	case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
+		LED_INV;
+		break;
+
+	case UART_II_MODEM_CHG: // 只支持串口0
+		break;
+
+	default:
+		break;
+	}
 }
 
 /******************************** endfile @ main ******************************/

@@ -46,10 +46,11 @@ typedef struct
     uint16_t connTimeout;
 } peripheralConnItem_t;
 
-extern MiniRingBuf RingBufUSB;
-extern uint8_t RingBufDataUSB[2048];
-extern MiniRingBuf RingBufBLE;
-extern uint8_t RingBufDataBLE[2048];
+/*********************************************************************
+ * EXTERNAL VARIABLES
+ */
+extern MiniRingBuf *RingBufTxUSB, *RingBufTxBLE, *RingBufTxUART;
+extern MiniRingBuf *RingBufRxUSB, *RingBufRxBLE, *RingBufRxUART;
 extern uint8_t Peripheral_TaskID;
 /*********************************************************************
  * FUNCTIONS

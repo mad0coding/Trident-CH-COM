@@ -34,7 +34,7 @@
 #define MRB_MUTEX_UNLOCK(mrb)		// mutex unlock, add code here
 
 /* Copy method option */
-#define MRB_COPY_METHOD				MRB_COPY_METHOD_LOOP
+#define MRB_COPY_METHOD				MRB_COPY_METHOD_MRBCPY
 #define MRB_COPY_METHOD_LOOP		0	// use a simple loop
 #define MRB_COPY_METHOD_MEMCPY		1	// use memcpy()
 #define MRB_COPY_METHOD_MRBCPY		2	// use a simple copy function
@@ -101,10 +101,10 @@ MRB_TYPE_SIZE mrb_len(MiniRingBuf *mrb);
 MRB_TYPE_USE mrb_del(MiniRingBuf *mrb, MRB_TYPE_USE len);
 MRB_TYPE_USE mrb_copy(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
 MRB_TYPE_USE mrb_read(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
-MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
+MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, const MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
 
 #if MRB_COPY_METHOD == MRB_COPY_METHOD_MRBCPY
-void* mrb_memcpy(void *dest, const void *src, size_t n);
+void* mrb_memcpy(void *dest, const void *src, /*size_t*/uint32_t n);
 #endif
 
 
