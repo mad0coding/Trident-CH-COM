@@ -48,6 +48,7 @@ extern "C" {
 #define SBP_PHY_UPDATE_EVT      0x0010
 #define SBP_BLE_TX_EVT          0x0020
 #define SBP_USB_TX_EVT          0x0040
+#define SBP_UART_TX_EVT         0x0080
 
 typedef struct
 {

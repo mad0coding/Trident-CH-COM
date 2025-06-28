@@ -279,7 +279,7 @@ void Peripheral_Init()
 
     mrb_init(&RingBuf0, RingBufData0, 2048, MRB_SET_SKIPWRITE);
     mrb_init(&RingBuf1, RingBufData1, 2048, MRB_SET_SKIPWRITE);
-    if(0){ // USB-UART
+    if(1){ // USB-UART
         RingBufTxUSB = RingBufRxUART = &RingBuf0;
         RingBufRxUSB = RingBufTxUART = &RingBuf1;
         RingBufTxBLE = RingBufRxBLE = NULL;
@@ -392,7 +392,7 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
         return (events ^ SBP_READ_RSSI_EVT);
     }
 
-    if(events & SBP_BLE_TX_EVT)
+    if(events & SBP_BLE_TX_EVT) // BLE发送
     {
         if(!RingBufTxBLE) return (events ^ SBP_BLE_TX_EVT);
         while(mrb_len(RingBufTxBLE))
@@ -411,7 +411,7 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
         return (events ^ SBP_BLE_TX_EVT);
     }
 
-    if(events & SBP_USB_TX_EVT)
+    if(events & SBP_USB_TX_EVT) // USB发送
     {
         if(RingBufTxUSB && mrb_len(RingBufTxUSB))
         {
@@ -419,6 +419,19 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
             tmos_start_task(Peripheral_TaskID, SBP_USB_TX_EVT, 5);
         }
         return (events ^ SBP_USB_TX_EVT);
+    }
+
+    if(events & SBP_UART_TX_EVT) // UART发送
+    {
+        if(!RingBufTxUART) return (events ^ SBP_UART_TX_EVT);
+        uint8_t dataByte;
+        while(R8_UART1_TFC != UART_FIFO_SIZE && mrb_read(RingBufTxUART, &dataByte, 1) == 1)
+        {
+            R8_UART1_THR = dataByte;
+        }
+        if(!MRB_empty(RingBufTxUART)) tmos_start_task(Peripheral_TaskID, SBP_UART_TX_EVT, /*5*/1);
+        if(mrb_len(RingBufTxUART) < 1024) R8_UEP2_CTRL = (R8_UEP2_CTRL & ~MASK_UEP_R_RES) | UEP_R_RES_ACK; // 缓存足够则取消忙响应
+        return (events ^ SBP_UART_TX_EVT);
     }
 
     // Discard unknown events
@@ -804,7 +817,8 @@ void ble_usb_ServiceEvt(uint16_t connection_handle, ble_usb_evt_t *p_evt)
             {
                 PRINT("RingBufRx BLE ERR \n");
             }
-            tmos_set_event(Peripheral_TaskID, SBP_USB_TX_EVT);
+            if(RingBufTxUSB) tmos_set_event(Peripheral_TaskID, SBP_USB_TX_EVT);
+            else if(RingBufTxUART) tmos_set_event(Peripheral_TaskID, SBP_UART_TX_EVT);
 
             break;
         default:
@@ -878,7 +892,9 @@ void UART1_IRQHandler(void)
 		break;
 
 	case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
-		//LED_INV;
+		if(RingBufTxUART && !MRB_empty(RingBufTxUART)){
+            tmos_set_event(Peripheral_TaskID, SBP_UART_TX_EVT); // 触发发送任务
+        }
 		break;
 
 	case UART_II_MODEM_CHG: // 只支持串口0

@@ -150,7 +150,8 @@ void DevEP2_OUT_Deal( uint8_t l )
 	if(mrb_len(RingBufRxUSB) > 1024){ // 缓存使用过半 实际只留一个USB包的空间即可 但这里保守处理
 		R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_NAK; // 设为忙响应
 	}
-	tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*32*/8); // 准备触发发送任务
+  if(RingBufTxBLE) tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*32*/2); // 准备触发发送任务
+  else if(RingBufTxUART) tmos_set_event(Peripheral_TaskID, SBP_UART_TX_EVT); // 触发发送任务
 }
 
 /*********************************************************************
