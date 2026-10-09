@@ -21,6 +21,12 @@ volatile uint8_t UART_FlowDSR = 1;
 volatile uint8_t UART_FlowRI = 1;
 volatile uint8_t UART_FlowDCD = 1;
 
+#define UART_DEFAULT_BAUDRATE     115200UL
+#define UART_DEFAULT_LINE_CODING  0xC3
+
+static uint32_t UART_BaudRate = UART_DEFAULT_BAUDRATE;
+static uint8_t UART_LineCoding = UART_DEFAULT_LINE_CODING;
+
 /*********************************************************************
  * @fn      UART1_Init
  *
@@ -34,7 +40,7 @@ void UART1_Init(void)
 	GPIOB_ModeCfg(bTXD1_, GPIO_ModeOut_PP_5mA);
 	GPIOB_ModeCfg(bRXD1_, GPIO_ModeIN_PU);
 	//UART1_DefInit();
-	UART1_BaudRateCfg(115200);
+	UART_SetBaudRate(UART_DEFAULT_BAUDRATE);
 	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO打开
 	R8_UART1_LCR = RB_LCR_WORD_SZ; // 8bit数据
 	R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY | RB_IER_THR_EMPTY; // 使能输出 使能接收中断 发送完成中断
@@ -57,7 +63,23 @@ void UART1_Init(void)
  */
 void UART_SetBaudRate(uint32_t baudrate)
 {
+	if(baudrate == 0)
+	{
+		baudrate = UART_DEFAULT_BAUDRATE;
+	}
+
 	UART1_BaudRateCfg(baudrate);
+	UART_BaudRate = baudrate;
+}
+
+uint32_t UART_GetBaudRate(void)
+{
+	return UART_BaudRate;
+}
+
+uint8_t UART_GetLineCoding(void)
+{
+	return UART_LineCoding;
 }
 
 /*********************************************************************
@@ -150,6 +172,7 @@ void UART_SetLineCoding(uint8_t format)
 	if((format & 0xC0) != 0xC0 || (dataBits == 0 && (format & 0x04)))
 	{
 		R8_UART1_LCR = RB_LCR_WORD_SZ;
+		UART_LineCoding = UART_DEFAULT_LINE_CODING;
 		return;
 	}
 
@@ -177,10 +200,12 @@ void UART_SetLineCoding(uint8_t format)
 			break;
 		default:
 			R8_UART1_LCR = RB_LCR_WORD_SZ;
+			UART_LineCoding = UART_DEFAULT_LINE_CODING;
 			return;
 	}
 
 	R8_UART1_LCR = lcr;
+	UART_LineCoding = format;
 }
 
 /*********************************************************************

@@ -15,6 +15,8 @@ extern "C" {
 void UART1_Init(void);
 void UART_SetBaudRate(uint32_t baudrate);
 void UART_SetLineCoding(uint8_t format);
+uint32_t UART_GetBaudRate(void);
+uint8_t UART_GetLineCoding(void);
 
 /*
  * Software modem-signal state for UART1.  A value of 1 represents a

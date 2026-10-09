@@ -17,7 +17,9 @@
 #include "gattprofile.h"
 #include "peripheral.h"
 #include "app_usb.h"
+#include "Storage.h"
 #include "UART.h"
+#include "cmd.h"
 
 
 // Global variables
@@ -75,12 +77,16 @@ int main(void)
 	GPIOA_ModeCfg(bTXD1, GPIO_ModeOut_PP_5mA); // LED
 	GPIOB_ModeCfg(bRXD0, GPIO_ModeIN_PU); // KEY
 
+	Cmd_SetMode(KEY_GET); // read the key at init stage to enter cmd mode
+
 	UART1_Init(); // 初始化串口1
 	// 初始化串口0
 	GPIOA_ModeCfg(bTXD0_, GPIO_ModeOut_PP_5mA);
 	GPIOA_ModeCfg(bRXD0_, GPIO_ModeIN_PU);
 	UART0_DefInit();
 	R16_PIN_ALTERNATE |= RB_PIN_UART0; // 引脚重映射
+
+	Storage_Init(); // 加载有效的上电串口配置和工作模式
 
 //	// PWM测试代码
 //	PWMX_CLKCfg(7); // 预分频 Fbase = Fsys/7

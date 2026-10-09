@@ -21,6 +21,7 @@
 #include "app_usb.h"
 #include "peripheral.h"
 #include "UART.h"
+#include "cmd.h"
 
 /*********************************************************************
  * MACROS
@@ -336,6 +337,14 @@ void DevEP1_OUT_Deal( uint8_t l )
  */
 void DevEP2_OUT_Deal( uint8_t l )
 { /* 用户可自定义 */
+  if(Cmd_IsActive())
+  {
+    /* Command mode owns USB RX; do not place command bytes in a forwarding
+     * buffer or trigger UART/BLE transmission. */
+    Cmd_Input(pEP2_OUT_DataBuf, l);
+    return;
+  }
+
   if(!RingBufRxUSB) return;
 	if(mrb_write(RingBufRxUSB, pEP2_OUT_DataBuf, l) != l){ // 读取USB数据到缓存
 		PRINT("RingBufBLE ERR \n");
