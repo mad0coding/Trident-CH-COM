@@ -17,6 +17,7 @@
 #include "gattprofile.h"
 #include "peripheral.h"
 #include "app_usb.h"
+#include "UART.h"
 
 
 // Global variables
@@ -67,25 +68,11 @@ int main(void)
     GPIOA_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
     GPIOB_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
 #endif
-#if 1//#ifdef DEBUG
+
 	GPIOA_ModeCfg(bTXD1, GPIO_ModeOut_PP_5mA); // LED
 	GPIOB_ModeCfg(bRXD0, GPIO_ModeIN_PU); // KEY
 
-	GPIOA_SetBits(bTXD1_);
-	GPIOB_ModeCfg(bTXD1_, GPIO_ModeOut_PP_5mA);
-	GPIOB_ModeCfg(bRXD1_, GPIO_ModeIN_PU);
-	//UART1_DefInit();
-	UART1_BaudRateCfg(115200);
-	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO打开
-	R8_UART1_LCR = RB_LCR_WORD_SZ; // 8bit数据
-	R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY | RB_IER_THR_EMPTY; // 使能输出 使能接收中断 发送完成中断
-	R8_UART1_DIV = 1;
-	R16_PIN_ALTERNATE |= RB_PIN_UART1; // 引脚重映射
-	UART1_ByteTrigCfg(UART_4BYTE_TRIG); // FIFO触发点4字节
-	//trigB = 7;
-	UART1_INTCfg(ENABLE, RB_IER_RECV_RDY | RB_IER_LINE_STAT);
-	PFIC_EnableIRQ(UART1_IRQn);
-#endif
+	UART1_Init(); // 初始化串口1
 	// 初始化串口0
 	GPIOA_ModeCfg(bTXD0_, GPIO_ModeOut_PP_5mA);
 	GPIOA_ModeCfg(bRXD0_, GPIO_ModeIN_PU);

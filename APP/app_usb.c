@@ -20,6 +20,7 @@
 #include "ble_usb_service.h"
 #include "app_usb.h"
 #include "peripheral.h"
+#include "UART.h"
 
 /*********************************************************************
  * MACROS
@@ -105,7 +106,7 @@ static uint32_t Ch340DecodeBaudRate(uint8_t code0, uint8_t code1)
         case 0xF683: return 600000;
         case 0xF883: return 750000;
         case 0xF387: return 921600;
-        default:     return 0;
+        default:     return 115200; // use 115200 for unknown setting
     }
 }
 
@@ -113,8 +114,7 @@ static uint32_t Ch340DecodeBaudRate(uint8_t code0, uint8_t code1)
  * @fn      Ch340PrintLineCoding
  *
  * @brief   Decode and print the line format carried by CH340 request
- *          40 9A 18 25 xx 00 00 00.  This is diagnostic only; UART1
- *          configuration intentionally remains unchanged.
+ *          40 9A 18 25 xx 00 00 00, then apply it to UART1.
  */
 static void Ch340PrintLineCoding(uint8_t format)
 {
@@ -131,8 +131,9 @@ static void Ch340PrintLineCoding(uint8_t format)
         default:                  break;
     }
 
-    printf("CH340 line: %u data, %u stop, %s parity (raw=%02X)\r\n",
-          5 + (format & 0x03), (format & 0x04) ? 2 : 1, parity, format);
+    UART_SetLineCoding(format);
+    // printf("CH340 line: %u data, %u stop, %s parity (raw=%02X)\r\n",
+    //        5 + (format & 0x03), (format & 0x04) ? 2 : 1, parity, format);
 }
 
 /*********************************************************************
@@ -153,10 +154,10 @@ static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
         if((value & 0x9F) == 0x9F)
         {
             Ch340ModemState[0] = value | 0x9F;
-            printf("CH340 flow: RTS=%s, DTR=%s (raw=%02X)\r\n",
-                   (Ch340ModemState[0] & 0x40) ? "HIGH" : "LOW",
-                   (Ch340ModemState[0] & 0x20) ? "HIGH" : "LOW",
-                   Ch340ModemState[0]);
+            // printf("CH340 flow: RTS=%s, DTR=%s (raw=%02X)\r\n",
+            //        (Ch340ModemState[0] & 0x40) ? "HIGH" : "LOW",
+            //        (Ch340ModemState[0] & 0x20) ? "HIGH" : "LOW",
+            //        Ch340ModemState[0]);
         }
         return;
     }
@@ -170,16 +171,17 @@ static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
     {
         baudrate = Ch340DecodeBaudRate((uint8_t)request->wIndex,
                                        (uint8_t)(request->wIndex >> 8));
-        if(baudrate != 0)
-        {
-            printf("CH340 baud: %lu (raw=%02X %02X)\r\n", (unsigned long)baudrate,
-                   (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
-        }
-        else
-        {
-            printf("CH340 baud: unknown (raw=%02X %02X)\r\n",
-                   (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
-        }
+        UART_SetBaudRate(baudrate); // set UART baudrate
+        // if(baudrate != 0)
+        // {
+        //     printf("CH340 baud: %lu (raw=%02X %02X)\r\n", (unsigned long)baudrate,
+        //            (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
+        // }
+        // else
+        // {
+        //     printf("CH340 baud: unknown (raw=%02X %02X)\r\n",
+        //            (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
+        // }
     }
     else if(request->wValue == 0x2518)
     {
