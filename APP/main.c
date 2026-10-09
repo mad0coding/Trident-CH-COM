@@ -20,7 +20,7 @@
 
 
 // Global variables
-uint8_t SysMode = SYS_MODE_COM2BLE;
+uint8_t SysMode = SYS_MODE_COM2UART;
 
 /*********************************************************************
  * GLOBAL TYPEDEFS
@@ -46,6 +46,7 @@ void Main_Circulation()
     {
         TMOS_SystemProcess();
 		//LED_SET(KEY_STATE);
+        LED_OFF;
     }
 }
 
@@ -67,24 +68,33 @@ int main(void)
     GPIOB_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
 #endif
 #if 1//#ifdef DEBUG
-    GPIOA_ModeCfg(bTXD1, GPIO_ModeOut_PP_5mA); // LED
+	GPIOA_ModeCfg(bTXD1, GPIO_ModeOut_PP_5mA); // LED
 	GPIOB_ModeCfg(bRXD0, GPIO_ModeIN_PU); // KEY
 
 	GPIOA_SetBits(bTXD1_);
 	GPIOB_ModeCfg(bTXD1_, GPIO_ModeOut_PP_5mA);
 	GPIOB_ModeCfg(bRXD1_, GPIO_ModeIN_PU);
-    //UART1_DefInit();
+	//UART1_DefInit();
 	UART1_BaudRateCfg(115200);
-    R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO打开
-    R8_UART1_LCR = RB_LCR_WORD_SZ; // 8bit数据
-    R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY | RB_IER_THR_EMPTY; // 使能输出 使能接收中断 发送完成中断
-    R8_UART1_DIV = 1;
+	R8_UART1_FCR = (2 << 6) | RB_FCR_TX_FIFO_CLR | RB_FCR_RX_FIFO_CLR | RB_FCR_FIFO_EN; // FIFO打开
+	R8_UART1_LCR = RB_LCR_WORD_SZ; // 8bit数据
+	R8_UART1_IER = RB_IER_TXD_EN | RB_IER_RECV_RDY | RB_IER_THR_EMPTY; // 使能输出 使能接收中断 发送完成中断
+	R8_UART1_DIV = 1;
 	R16_PIN_ALTERNATE |= RB_PIN_UART1; // 引脚重映射
 	UART1_ByteTrigCfg(UART_4BYTE_TRIG); // FIFO触发点4字节
-    //trigB = 7;
-    UART1_INTCfg(ENABLE, RB_IER_RECV_RDY | RB_IER_LINE_STAT);
-    PFIC_EnableIRQ(UART1_IRQn);
+	//trigB = 7;
+	UART1_INTCfg(ENABLE, RB_IER_RECV_RDY | RB_IER_LINE_STAT);
+	PFIC_EnableIRQ(UART1_IRQn);
 #endif
+//	// PWM测试代码
+//	PWMX_CLKCfg(7); // 预分频 Fbase = Fsys/7
+//	PWMX_16bit_CycleCfg(65000-1); // 16位数据宽度 Ncyc = RB_PWM_CYC_VALUE + 1
+//	PWMX_16bit_ACTOUT(CH_PWM4, 0, High_Level, ENABLE); // PWM4 - 0%占空比
+//	GPIOA_ModeCfg(GPIO_Pin_12, GPIO_ModeOut_PP_20mA); // BUZZ
+//	R32_PWM_REG_CYCLE = 65000 / (12*0 + 1);
+//	R16_PWM4_DATA = 300;
+//	while(1);
+	
     PRINT("%s\n", VER_LIB);
 	printf("Test.\n");
     CH59x_BLEInit();
@@ -92,12 +102,12 @@ int main(void)
     GAPRole_PeripheralInit();
     Peripheral_Init();
     app_usb_init();
-	for(int i = 0; i < 5; i++){
-		LED_ON;
-		mDelaymS(500);
-		LED_OFF;
-		mDelaymS(500);
-	}
+//	for(int i = 0; i < 5; i++){
+//		LED_ON;
+//		mDelaymS(500);
+//		LED_OFF;
+//		mDelaymS(500);
+//	}
     Main_Circulation();
 }
 

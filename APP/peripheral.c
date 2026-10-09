@@ -880,6 +880,7 @@ void UART1_IRQHandler(void)
 
 	case UART_II_RECV_RDY: // 数据达到设置触发点
 	case UART_II_RECV_TOUT: // 接收超时，暂时一帧数据接收完成
+		LED_ON;
 		len = UART1_RecvString(rxBuf);
         if(!RingBufRxUART) break;
 		mrb_write(RingBufRxUART, rxBuf, len);
@@ -887,11 +888,10 @@ void UART1_IRQHandler(void)
         if(RingBufTxUSB) tmos_set_event(Peripheral_TaskID, SBP_USB_TX_EVT);
         else if(RingBufTxBLE) tmos_set_event(Peripheral_TaskID, SBP_BLE_TX_EVT);
 
-        LED_INV;
-
 		break;
 
 	case UART_II_THR_EMPTY: // 发送缓存区空，可继续发送
+		LED_ON;
 		if(RingBufTxUART && !MRB_empty(RingBufTxUART)){
             tmos_set_event(Peripheral_TaskID, SBP_UART_TX_EVT); // 触发发送任务
         }
