@@ -5,7 +5,21 @@
 
 #include "CONFIG.h"
 #include "UART.h"
+#include "app_usb.h"
 #include "peripheral.h"
+
+/*
+ * These are deliberately not connected to CH592 GPIOs here.  Board-specific
+ * code can map them to pins later without changing the USB protocol layer.
+ * The input defaults are high, which is the inactive state of the CH340
+ * modem-status bits and preserves the previous 0x9F, 0x88 reply.
+ */
+volatile uint8_t UART_FlowDTR = 0;
+volatile uint8_t UART_FlowRTS = 0;
+volatile uint8_t UART_FlowCTS = 1;
+volatile uint8_t UART_FlowDSR = 1;
+volatile uint8_t UART_FlowRI = 1;
+volatile uint8_t UART_FlowDCD = 1;
 
 /*********************************************************************
  * @fn      UART1_Init
@@ -44,6 +58,74 @@ void UART1_Init(void)
 void UART_SetBaudRate(uint32_t baudrate)
 {
 	UART1_BaudRateCfg(baudrate);
+}
+
+/*********************************************************************
+ * @fn      UART_SetFlowOutputs
+ *
+ * @brief   Update the DTR and RTS states requested by the USB host.
+ *
+ * @param   dtr - DTR output level, non-zero for high
+ * @param   rts - RTS output level, non-zero for high
+ *
+ * @return  none
+ */
+void UART_SetFlowOutputs(uint8_t dtr, uint8_t rts)
+{
+	UART_FlowDTR = dtr ? 1 : 0;
+	UART_FlowRTS = rts ? 1 : 0;
+}
+
+/*********************************************************************
+ * @fn      UART_SetFlowInputs
+ *
+ * @brief   Set selected modem-input levels and notify the USB host if the
+ *          CH340-visible state changed.  Mask/value bits map as follows:
+ *          bit0=CTS, bit1=DSR, bit2=RI, bit3=DCD.  A value bit of one
+ *          represents a high physical input level.
+ *
+ * @param   mask  - inputs to change; zero bits leave their inputs unchanged
+ * @param   value - new levels for the selected inputs
+ *
+ * @return  none
+ */
+void UART_SetFlowInputs(uint8_t mask, uint8_t value)
+{
+	uint8_t oldStatus = UART_GetFlowStatus();
+
+	mask &= UART_FLOW_INPUT_MASK;
+	if(mask & UART_FLOW_INPUT_CTS) UART_FlowCTS = (value & UART_FLOW_INPUT_CTS) ? 1 : 0;
+	if(mask & UART_FLOW_INPUT_DSR) UART_FlowDSR = (value & UART_FLOW_INPUT_DSR) ? 1 : 0;
+	if(mask & UART_FLOW_INPUT_RI)  UART_FlowRI = (value & UART_FLOW_INPUT_RI) ? 1 : 0;
+	if(mask & UART_FLOW_INPUT_DCD) UART_FlowDCD = (value & UART_FLOW_INPUT_DCD) ? 1 : 0;
+
+	if(oldStatus != UART_GetFlowStatus())
+	{
+		USB_NotifyFlowStatus();
+	}
+}
+
+/*********************************************************************
+ * @fn      UART_GetFlowStatus
+ *
+ * @brief   Encode the current modem-signal state in the CH340 status byte.
+ *          CTS/DSR/RI/DCD occupy bits 0..3 respectively.  A low input
+ *          clears its bit, matching the captured CH340 status reports.
+ *
+ * @return  CH340 modem-status byte
+ */
+uint8_t UART_GetFlowStatus(void)
+{
+	uint8_t status = 0x90;
+
+	if(UART_FlowRTS) status |= 0x40;
+	if(UART_FlowDTR) status |= 0x20;
+	if(UART_FlowCTS) status |= 0x01;
+	if(UART_FlowDSR) status |= 0x02;
+	if(UART_FlowRI)  status |= 0x04;
+	if(UART_FlowDCD) status |= 0x08;
+
+	return status;
 }
 
 /*********************************************************************

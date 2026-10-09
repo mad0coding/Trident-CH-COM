@@ -48,6 +48,9 @@ void Main_Circulation()
         TMOS_SystemProcess();
 		//LED_SET(KEY_GET);
         LED_OFF;
+		// LED_SET(UART_FlowDTR); // display flow ctrl out signal
+		// if(KEY_GET) UART_SetFlowInputs(UART_FLOW_INPUT_CTS, UART_FLOW_INPUT_CTS); // set flow ctrl in signal
+		// else UART_SetFlowInputs(UART_FLOW_INPUT_CTS, ~UART_FLOW_INPUT_CTS);
     }
 }
 

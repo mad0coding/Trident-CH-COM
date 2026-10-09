@@ -62,8 +62,10 @@ const uint8_t StrDesc[28] =
 
 const uint8_t Return1[2] = {0x31,0x00};
 const uint8_t Return2[2] = {0xC3,0x00};
-/* CH340 modem-state reply: bit6=RTS, bit5=DTR; remaining low bits are always 1. */
+/* CH340 modem-state reply: bit6=RTS, bit5=DTR, bits3..0=DCD/RI/DSR/CTS. */
 static uint8_t Ch340ModemState[2] = {0x9F, 0x88};
+static uint8_t Ch340ReportedModemState = 0xFF;
+static volatile uint8_t Ch340ModemStatusPending = 1;
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -76,10 +78,85 @@ __attribute__((aligned(4)))  uint8_t EP2_Databuf[64 + 64];    //ep2_out(64)+ep2_
 __attribute__((aligned(4)))  uint8_t EP3_Databuf[64 + 64];    //ep3_out(64)+ep3_in(64)
 
 /*********************************************************************
+ * @fn      Ch340UpdateModemState
+ *
+ * @brief   Refresh the two-byte status returned by the CH340 status query.
+ *
+ * @return  none
+ */
+static void Ch340UpdateModemState(void)
+{
+    Ch340ModemState[0] = UART_GetFlowStatus();
+    Ch340ModemState[1] = 0x88;
+}
+
+/*********************************************************************
+ * @fn      Ch340QueueModemStatus
+ *
+ * @brief   Send a CH340-compatible interrupt-endpoint notification whenever
+ *          the combined modem status changes.  The endpoint is armed only
+ *          after configuration and only when its previous IN transfer ended.
+ *
+ * @return  none
+ */
+static void Ch340QueueModemStatus(void)
+{
+    uint8_t status = UART_GetFlowStatus();
+
+    if(status != Ch340ReportedModemState)
+    {
+        Ch340ModemStatusPending = 1;
+    }
+
+    if(!DevConfig || !Ch340ModemStatusPending ||
+       (R8_UEP1_CTRL & MASK_UEP_T_RES) == UEP_T_RES_ACK)
+    {
+        return;
+    }
+
+    pEP1_IN_DataBuf[0] = 0x08;
+    pEP1_IN_DataBuf[1] = status;
+    pEP1_IN_DataBuf[2] = status;
+    pEP1_IN_DataBuf[3] = 0x88;
+    DevEP1_IN_Deal(4);
+    Ch340ReportedModemState = status;
+    Ch340ModemStatusPending = 0;
+}
+
+/*********************************************************************
+ * @fn      USB_NotifyFlowStatus
+ *
+ * @brief   Immediately try to submit a changed modem-input state through
+ *          the CH340 interrupt endpoint.  It is safe to call before USB is
+ *          configured; in that case the notification is deferred.
+ *
+ * @return  none
+ */
+void USB_NotifyFlowStatus(void)
+{
+    Ch340QueueModemStatus();
+}
+
+/*********************************************************************
+ * @fn      USB_ResendFlowStatus
+ *
+ * @brief   Force the current modem-input state to be sent on the next
+ *          available endpoint-1 IN transfer, even if it was reported before.
+ *          The CH340 baud-rate request uses this as the port-open cue.
+ *
+ * @return  none
+ */
+void USB_ResendFlowStatus(void)
+{
+    Ch340ModemStatusPending = 1;
+    Ch340QueueModemStatus();
+}
+
+/*********************************************************************
  * @fn      Ch340DecodeBaudRate
  *
- * @brief   Convert the CH340 vendor baud-rate code to baud.  A return
- *          value of zero means that the code has not been mapped yet.
+ * @brief   Convert the CH340 vendor baud-rate code to baud.  Unmapped
+ *          values fall back to the safe default of 115200 bps.
  */
 static uint32_t Ch340DecodeBaudRate(uint8_t code0, uint8_t code1)
 {
@@ -153,11 +230,10 @@ static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
         value = (uint8_t)request->wValue;
         if((value & 0x9F) == 0x9F)
         {
-            Ch340ModemState[0] = value | 0x9F;
+            UART_SetFlowOutputs(value & 0x20, value & 0x40);
             // printf("CH340 flow: RTS=%s, DTR=%s (raw=%02X)\r\n",
-            //        (Ch340ModemState[0] & 0x40) ? "HIGH" : "LOW",
-            //        (Ch340ModemState[0] & 0x20) ? "HIGH" : "LOW",
-            //        Ch340ModemState[0]);
+            //        UART_FlowRTS ? "HIGH" : "LOW",
+            //        UART_FlowDTR ? "HIGH" : "LOW", value);
         }
         return;
     }
@@ -172,6 +248,7 @@ static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
         baudrate = Ch340DecodeBaudRate((uint8_t)request->wIndex,
                                        (uint8_t)(request->wIndex >> 8));
         UART_SetBaudRate(baudrate); // set UART baudrate
+        USB_ResendFlowStatus();
         // if(baudrate != 0)
         // {
         //     printf("CH340 baud: %lu (raw=%02X %02X)\r\n", (unsigned long)baudrate,
@@ -339,7 +416,10 @@ void USB_DevTransProcess( void )
 
         case UIS_TOKEN_OUT :
         {
-          len = R8_USB_RX_LEN;
+            len = R8_USB_RX_LEN;
+            /* End of a control-read transfer: return EP0 to its idle state. */
+            R8_UEP0_T_LEN = 0;
+            R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
         }
           break;
 
@@ -415,6 +495,11 @@ void USB_DevTransProcess( void )
 
       len = 0;
       errflag = 0;
+      /*
+       * On CH592, R8_USB_RX_LEN is not reliable while RB_UIS_SETUP_ACT is
+       * asserted; it can read as zero for a valid eight-byte SETUP packet.
+       * Do not use it to validate a SETUP transaction here.
+       */
       if ( ( pSetupReqPak->bRequestType & USB_REQ_TYP_MASK ) != USB_REQ_TYP_STANDARD )
       {
         if( pSetupReqPak->bRequestType == 0xC0 )
@@ -433,6 +518,7 @@ void USB_DevTransProcess( void )
             }
             else if(pSetupReqPak->wValue == 0x0706)
             {
+              Ch340UpdateModemState();
               pDescr = Ch340ModemState;
               len = sizeof(Ch340ModemState);
             }
@@ -448,6 +534,10 @@ void USB_DevTransProcess( void )
           }
           if(errflag == 0)
           {
+            if(SetupReqLen > len)
+            {
+              SetupReqLen = len;
+            }
             memcpy(pEP0_DataBuf,pDescr,len);
           }
         }
@@ -485,21 +575,8 @@ void USB_DevTransProcess( void )
                 break;
 
               case USB_DESCR_TYP_REPORT :
-//              {
-//                if ( ( ( pSetupReqPak->wIndex ) & 0xff ) == 0 )                             //接口0报表描述符
-//                {
-//                  pDescr = KeyRepDesc;                                  //数据准备上传
-//                  len = sizeof( KeyRepDesc );
-//                }
-//                else if ( ( ( pSetupReqPak->wIndex ) & 0xff ) == 1 )                        //接口1报表描述符
-//                {
-//                  pDescr = MouseRepDesc;                                //数据准备上传
-//                  len = sizeof( MouseRepDesc );
-//                  Ready = 1;                                            //如果有更多接口，该标准位应该在最后一个接口配置完成后有效
-//                }
-//                else
-//                  len = 0xff;                                           //本程序只有2个接口，这句话正常不可能执行
-//              }
+                /* This is a vendor interface, not HID; no report descriptor exists. */
+                errflag = 0xFF;
                 break;
 
               case USB_DESCR_TYP_STRING :
@@ -529,12 +606,15 @@ void USB_DevTransProcess( void )
                 errflag = 0xff;
                 break;
             }
-            if ( SetupReqLen > len )
-              SetupReqLen = len;      //实际需上传总长度
-            len = ( SetupReqLen >= DevEP0SIZE ) ?
-                DevEP0SIZE : SetupReqLen;
-            memcpy( pEP0_DataBuf, pDescr, len );
-            pDescr += len;
+            if(errflag == 0)
+            {
+              if ( SetupReqLen > len )
+                SetupReqLen = len;      //实际需上传总长度
+              len = ( SetupReqLen >= DevEP0SIZE ) ?
+                  DevEP0SIZE : SetupReqLen;
+              memcpy( pEP0_DataBuf, pDescr, len );
+              pDescr += len;
+            }
           }
             break;
 
@@ -549,7 +629,19 @@ void USB_DevTransProcess( void )
             break;
 
           case USB_SET_CONFIGURATION :
-            DevConfig = ( pSetupReqPak->wValue ) & 0xff;
+            if((pSetupReqPak->wValue & 0xff) > 1)
+            {
+              errflag = 0xFF;
+            }
+            else
+            {
+              DevConfig = ( pSetupReqPak->wValue ) & 0xff;
+              if(!DevConfig)
+              {
+                Ch340ReportedModemState = 0xFF;
+                Ch340ModemStatusPending = 1;
+              }
+            }
             break;
 
           case USB_CLEAR_FEATURE :
@@ -619,10 +711,16 @@ void USB_DevTransProcess( void )
 
       R8_USB_INT_FG = RB_UIF_TRANSFER;
     }
+    Ch340QueueModemStatus();
   }
   else if ( intflag & RB_UIF_BUS_RST )
   {
     R8_USB_DEV_AD = 0;
+    DevConfig = 0;
+    Ready = 0;
+    Ch340ReportedModemState = 0xFF;
+    Ch340ModemStatusPending = 1;
+    R8_UEP1_T_LEN = 0;
     R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
     R8_UEP1_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK | RB_UEP_AUTO_TOG;
     R8_UEP2_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK | RB_UEP_AUTO_TOG;
