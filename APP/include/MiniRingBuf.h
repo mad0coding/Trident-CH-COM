@@ -1,8 +1,16 @@
 /*
 	File:    MiniRingBuf.h
 	Author:  Light&Electricity
-	Date:    2025.6.27
-	Version: 0.5
+	Date:    2026.10.08
+	Version: 0.6
+*/
+/*
+	Usage notes:
+	- The caller must provide a valid buffer and size (at least 2).
+	- When mutex support is enabled, the caller must set mrb->mutex before use.
+	- Callbacks run while the buffer is locked. Do not call mrb_* APIs in a
+	  callback; use only the MRB_* macros when buffer access is required.
+	- An unknown read or write mode is handled as its skip mode.
 */
 #ifndef _MINIRINGBUF_H
 #define _MINIRINGBUF_H
@@ -37,17 +45,21 @@
 #define MRB_COPY_METHOD				MRB_COPY_METHOD_MRBCPY
 #define MRB_COPY_METHOD_LOOP		0	// use a simple loop
 #define MRB_COPY_METHOD_MEMCPY		1	// use memcpy()
-#define MRB_COPY_METHOD_MRBCPY		2	// use a simple copy function
+#define MRB_COPY_METHOD_MRBCPY		2	// use a simple copy function for 32bit core
 #if MRB_COPY_METHOD == MRB_COPY_METHOD_MEMCPY
 #define MRB_COPY_FUNC(dest, src, size)	memcpy(dest, src, size)
 #else
 #define MRB_COPY_FUNC(dest, src, size)	mrb_memcpy(dest, src, size)
 #endif
 
-
+/* settings */
 #define MRB_SET_SKIPWRITE	0x00
 #define MRB_SET_PARTWRITE	0x01
 #define MRB_SET_OVERWRITE	0x02
+#define MRB_SET_WRITE_MASK	0x0F
+#define MRB_SET_SKIPREAD	(0x00 << 4)
+#define MRB_SET_PARTREAD	(0x01 << 4)
+#define MRB_SET_READ_MASK	(0x0F << 4)
 
 
 /* Buffer struct definition */
@@ -104,7 +116,7 @@ MRB_TYPE_USE mrb_read(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
 MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, const MRB_TYPE_BUF *buf, MRB_TYPE_USE len);
 
 #if MRB_COPY_METHOD == MRB_COPY_METHOD_MRBCPY
-void* mrb_memcpy(void *dest, const void *src, /*size_t*/uint32_t n);
+void* mrb_memcpy(void *dest, const void *src, uint32_t n);
 #endif
 
 

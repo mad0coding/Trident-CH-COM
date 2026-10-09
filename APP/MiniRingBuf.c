@@ -1,8 +1,8 @@
 /*
 	File:    MiniRingBuf.c
 	Author:  Light&Electricity
-	Date:    2025.6.27
-	Version: 0.5
+	Date:    2026.10.08
+	Version: 0.6
 */
 #include "MiniRingBuf.h"
 
@@ -24,19 +24,52 @@ void mrb_init(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_SIZE size, MRB_TYPE_
 /* clear entire buf */
 void mrb_clear(MiniRingBuf *mrb)
 {
+#if (MRB_MUTEX_EN)
+	MRB_MUTEX_LOCK(mrb);
+#endif
+#if (MRB_CRITICAL_EN)
+	MRB_CRITICAL_START(mrb);
+#endif
+
 	MRB_clear(mrb);
+
+#if (MRB_CRITICAL_EN)
+	MRB_CRITICAL_END(mrb);
+#endif
+#if (MRB_MUTEX_EN)
+	MRB_MUTEX_UNLOCK(mrb);
+#endif
 }
 
 /* check if it's empty */
 MRB_TYPE_BOOL mrb_empty(MiniRingBuf *mrb)
 {
-	return MRB_empty(mrb);
+	MRB_TYPE_BOOL ret;
+
+#if (MRB_MUTEX_EN)
+	MRB_MUTEX_LOCK(mrb);
+#endif
+#if (MRB_CRITICAL_EN)
+	MRB_CRITICAL_START(mrb);
+#endif
+
+	ret = MRB_empty(mrb);
+
+#if (MRB_CRITICAL_EN)
+	MRB_CRITICAL_END(mrb);
+#endif
+#if (MRB_MUTEX_EN)
+	MRB_MUTEX_UNLOCK(mrb);
+#endif
+
+	return ret;
 }
 
 /* check if it's full */
 MRB_TYPE_BOOL mrb_full(MiniRingBuf *mrb)
 {
 	MRB_TYPE_BOOL ret;
+
 #if (MRB_MUTEX_EN)
 	MRB_MUTEX_LOCK(mrb);
 #endif
@@ -154,10 +187,12 @@ MRB_TYPE_USE mrb_copy(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 #endif
 
 	if(tmpLen < len){
+		MRB_TYPE_BYTE mrb_set_read = mrb->set & MRB_SET_READ_MASK;
 #if (MRB_CALLBACK_NODATA)
 		if(mrb->callback) mrb->callback(mrb, MRB_CALLBACK_NODATA);
 #endif
-		len = tmpLen; // no enough data, only read the existing data
+		if(mrb_set_read == MRB_SET_PARTREAD) len = tmpLen;
+		else len = 0; // skip read for MRB_SET_SKIPREAD or invalid set
 	}
 	else tmpLen = len; // save len as return value
 
@@ -216,10 +251,12 @@ MRB_TYPE_USE mrb_read(MiniRingBuf *mrb, MRB_TYPE_BUF *buf, MRB_TYPE_USE len)
 #endif
 
 	if(tmpLen < len){
+		MRB_TYPE_BYTE mrb_set_read = mrb->set & MRB_SET_READ_MASK;
 #if (MRB_CALLBACK_NODATA)
 		if(mrb->callback) mrb->callback(mrb, MRB_CALLBACK_NODATA);
 #endif
-		len = tmpLen; // no enough data, only read the existing data
+		if(mrb_set_read == MRB_SET_PARTREAD) len = tmpLen;
+		else len = 0; // skip read for MRB_SET_SKIPREAD or invalid set
 	}
 	else tmpLen = len; // save len as return value
 
@@ -279,14 +316,27 @@ MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, const MRB_TYPE_BUF *buf, MRB_TYPE_USE l
 #endif
 
 	if(tmpLen + len >= mrb->size){ // no enough space
+		MRB_TYPE_BYTE mrb_set_write = mrb->set & MRB_SET_WRITE_MASK;
 #if MRB_CALLBACK_NOSPACE
 		if(mrb->callback) mrb->callback(mrb, MRB_CALLBACK_NOSPACE);
 #endif
-		if(mrb->set == MRB_SET_SKIPWRITE) len = 0;
-		else if(mrb->set == MRB_SET_PARTWRITE) len = mrb->size - tmpLen - 1;
-		else if(mrb->set == MRB_SET_OVERWRITE){
-			len = 0;
+		if(mrb_set_write == MRB_SET_SKIPWRITE) len = 0;
+		else if(mrb_set_write == MRB_SET_PARTWRITE) len = mrb->size - tmpLen - 1;
+		else if(mrb_set_write == MRB_SET_OVERWRITE){
+			MRB_TYPE_SIZE space = mrb->size - tmpLen - 1;
+			MRB_TYPE_SIZE capacity = mrb->size - 1;
+
+			// a ring buffer can retain only its most recent capacity items
+			if(len > capacity){
+				buf += len - capacity;
+				len = capacity;
+			}
+
+			// discard the old items displaced by this write
+			mrb->start += len - space;
+			if(mrb->start >= mrb->size) mrb->start -= mrb->size;
 		}
+		else len = 0; // invalid setting: handle as MRB_SET_SKIPWRITE
 	}
 	tmpLen = len; // save len as return value
 
@@ -326,48 +376,48 @@ MRB_TYPE_USE mrb_write(MiniRingBuf *mrb, const MRB_TYPE_BUF *buf, MRB_TYPE_USE l
 /* a simple memcpy function for 32bit core */
 void* mrb_memcpy(void *dest, const void *src, uint32_t n)
 {
-    uint8_t *d = (uint8_t *)dest;
-    const uint8_t *s = (const uint8_t *)src;
+	uint8_t *d = (uint8_t *)dest;
+	const uint8_t *s = (const uint8_t *)src;
 
-    if(((uintptr_t)d & 0x03) == ((uintptr_t)s & 0x03)){ // 4-byte aligned
-        while(((uintptr_t)d & 0x03) && n > 0){ // copy unaligned bytes
+	if(((uintptr_t)d & 0x03) == ((uintptr_t)s & 0x03)){ // 4-byte aligned
+		while(((uintptr_t)d & 0x03) && n > 0){ // copy unaligned bytes
 			n--;
-            *d++ = *s++;
-        }
+			*d++ = *s++;
+		}
 
-        // use uint32_t to copy
-        uint32_t *dw = (uint32_t *)d;
-        const uint32_t *sw = (const uint32_t *)s;
-        uint32_t n_words = n >> 2; // n / 4
-        for(uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy words
+		// use uint32_t to copy
+		uint32_t *dw = (uint32_t *)d;
+		const uint32_t *sw = (const uint32_t *)s;
+		uint32_t n_words = n >> 2; // n / 4
+		for(uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy words
 
-        // update the pointer for remaining data
-        d = (uint8_t *)(dw + n_words);
-        s = (const uint8_t *)(sw + n_words);
-        n &= 0x03; // n % 4
-    }
-    else if (((uintptr_t)d & 0x01) == ((uintptr_t)s & 0x01)) { // 2-byte aligned
-        if(((uintptr_t)d & 0x01) && n > 0){ // copy unaligned byte
+		// update the pointer for remaining data
+		d = (uint8_t *)(dw + n_words);
+		s = (const uint8_t *)(sw + n_words);
+		n &= 0x03; // n % 4
+	}
+	else if (((uintptr_t)d & 0x01) == ((uintptr_t)s & 0x01)) { // 2-byte aligned
+		if(((uintptr_t)d & 0x01) && n > 0){ // copy unaligned byte
 			n--;
-            *d++ = *s++;
-        }
+			*d++ = *s++;
+		}
 
-        // use uint16_t to copy
-        uint16_t *dw = (uint16_t *)d;
-        const uint16_t *sw = (const uint16_t *)s;
-        uint32_t n_words = n >> 1; // n / 2
-        for (uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy halfwords
+		// use uint16_t to copy
+		uint16_t *dw = (uint16_t *)d;
+		const uint16_t *sw = (const uint16_t *)s;
+		uint32_t n_words = n >> 1; // n / 2
+		for (uint32_t i = 0; i < n_words; i++) dw[i] = sw[i]; // copy halfwords
 
-        // update the pointer for remaining data
-        d = (uint8_t *)(dw + n_words);
-        s = (const uint8_t *)(sw + n_words);
-        n &= 0x01; // n % 2
-    }
+		// update the pointer for remaining data
+		d = (uint8_t *)(dw + n_words);
+		s = (const uint8_t *)(sw + n_words);
+		n &= 0x01; // n % 2
+	}
 	// else unaligned
 
-    for(uint32_t i = 0; i < n; i++) d[i] = s[i]; // copy all remaining bytes
+	for(uint32_t i = 0; i < n; i++) d[i] = s[i]; // copy all remaining bytes
 
-    return dest;
+	return dest;
 }
 #endif
 

@@ -277,8 +277,8 @@ void Peripheral_Init()
     // Setup a delayed profile startup
     tmos_set_event(Peripheral_TaskID, SBP_START_DEVICE_EVT);
 
-    mrb_init(&RingBuf0, RingBufData0, 2048, MRB_SET_SKIPWRITE);
-    mrb_init(&RingBuf1, RingBufData1, 2048, MRB_SET_SKIPWRITE);
+    mrb_init(&RingBuf0, RingBufData0, 2048, MRB_SET_SKIPWRITE | MRB_SET_SKIPREAD);
+    mrb_init(&RingBuf1, RingBufData1, 2048, MRB_SET_SKIPWRITE | MRB_SET_SKIPREAD);
     if(1){ // USB-UART
         RingBufTxUSB = RingBufRxUART = &RingBuf0;
         RingBufRxUSB = RingBufTxUART = &RingBuf1;
