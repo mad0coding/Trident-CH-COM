@@ -61,7 +61,8 @@ const uint8_t StrDesc[28] =
 
 const uint8_t Return1[2] = {0x31,0x00};
 const uint8_t Return2[2] = {0xC3,0x00};
-const uint8_t Return3[2] = {0x9F,0xEE};
+/* CH340 modem-state reply: bit6=RTS, bit5=DTR; remaining low bits are always 1. */
+static uint8_t Ch340ModemState[2] = {0x9F, 0x88};
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -72,6 +73,119 @@ __attribute__((aligned(4)))  uint8_t EP0_Databuf[64 + 64 + 64];    //ep0(64)+ep4
 __attribute__((aligned(4)))  uint8_t EP1_Databuf[64 + 64];    //ep1_out(64)+ep1_in(64)
 __attribute__((aligned(4)))  uint8_t EP2_Databuf[64 + 64];    //ep2_out(64)+ep2_in(64)
 __attribute__((aligned(4)))  uint8_t EP3_Databuf[64 + 64];    //ep3_out(64)+ep3_in(64)
+
+/*********************************************************************
+ * @fn      Ch340DecodeBaudRate
+ *
+ * @brief   Convert the CH340 vendor baud-rate code to baud.  A return
+ *          value of zero means that the code has not been mapped yet.
+ */
+static uint32_t Ch340DecodeBaudRate(uint8_t code0, uint8_t code1)
+{
+    switch(((uint16_t)code1 << 8) | code0)
+    {
+        case 0x9680: return 110;
+        case 0xD980: return 300;
+        case 0x6481: return 600;
+        case 0xB281: return 1200;
+        case 0xD981: return 2400;
+        case 0x6482: return 4800;
+        case 0xB282: return 9600;
+        case 0xCC82: return 14400;
+        case 0xD982: return 19200;
+        case 0x6483: return 38400;
+        case 0x9583: return 56000;
+        case 0x9883: return 57600;
+        case 0xCC83: return 115200;
+        case 0xD183: return 128000;
+        case 0xE683: return 230400;
+        case 0xE983: return 256000;
+        case 0xF383: return 460800;
+        case 0xF483: return 512000;
+        case 0xF683: return 600000;
+        case 0xF883: return 750000;
+        case 0xF387: return 921600;
+        default:     return 0;
+    }
+}
+
+/*********************************************************************
+ * @fn      Ch340PrintLineCoding
+ *
+ * @brief   Decode and print the line format carried by CH340 request
+ *          40 9A 18 25 xx 00 00 00.  This is diagnostic only; UART1
+ *          configuration intentionally remains unchanged.
+ */
+static void Ch340PrintLineCoding(uint8_t format)
+{
+    const char *parity = "unknown";
+    uint8_t parityCode = (format >> 3) & 0x07;
+
+    switch(parityCode)
+    {
+        case 0: parity = "none";  break;
+        case 1: parity = "odd";   break;
+        case 3: parity = "even";  break;
+        case 5: parity = "mark";  break;
+        case 7: parity = "space"; break;
+        default:                  break;
+    }
+
+    printf("CH340 line: %u data, %u stop, %s parity (raw=%02X)\r\n",
+          5 + (format & 0x03), (format & 0x04) ? 2 : 1, parity, format);
+}
+
+/*********************************************************************
+ * @fn      Ch340HandleVendorOut
+ *
+ * @brief   Record the CH340 vendor control requests sent by the host.
+ *          Physical UART configuration and modem GPIOs are deliberately
+ *          not changed in this diagnostic stage.
+ */
+static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
+{
+    uint8_t value;
+    uint32_t baudrate;
+
+    if(request->bRequest == 0xA4)
+    {
+        value = (uint8_t)request->wValue;
+        if((value & 0x9F) == 0x9F)
+        {
+            Ch340ModemState[0] = value | 0x9F;
+            printf("CH340 flow: RTS=%s, DTR=%s (raw=%02X)\r\n",
+                   (Ch340ModemState[0] & 0x40) ? "HIGH" : "LOW",
+                   (Ch340ModemState[0] & 0x20) ? "HIGH" : "LOW",
+                   Ch340ModemState[0]);
+        }
+        return;
+    }
+
+    if(request->bRequest != 0x9A)
+    {
+        return;
+    }
+
+    if(request->wValue == 0x1312)
+    {
+        baudrate = Ch340DecodeBaudRate((uint8_t)request->wIndex,
+                                       (uint8_t)(request->wIndex >> 8));
+        if(baudrate != 0)
+        {
+            printf("CH340 baud: %lu (raw=%02X %02X)\r\n", (unsigned long)baudrate,
+                   (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
+        }
+        else
+        {
+            printf("CH340 baud: unknown (raw=%02X %02X)\r\n",
+                   (uint8_t)request->wIndex, (uint8_t)(request->wIndex >> 8));
+        }
+    }
+    else if(request->wValue == 0x2518)
+    {
+        Ch340PrintLineCoding((uint8_t)request->wIndex);
+    }
+}
 
 /*********************************************************************
  * PUBLIC FUNCTIONS
@@ -310,22 +424,36 @@ void USB_DevTransProcess( void )
           }
           else if(SetupReqCode==0x95)
           {
-            if((pSetupReqPak->wValue)==0x18)
+            if(pSetupReqPak->wValue == 0x2518)
             {
               pDescr = Return2;
               len = sizeof(Return2);
             }
-            else if((pSetupReqPak->wValue)==0x06)
+            else if(pSetupReqPak->wValue == 0x0706)
             {
-              pDescr = Return3;
-              len = sizeof(Return3);
+              pDescr = Ch340ModemState;
+              len = sizeof(Ch340ModemState);
+            }
+            else // can't use errflag = 0xFF; so just use Return2 here instead of random data
+            {
+              pDescr = Return2;
+              len = sizeof(Return2);
             }
           }
           else
           {
             errflag = 0xFF;
           }
-          memcpy(pEP0_DataBuf,pDescr,len);
+          if(errflag == 0)
+          {
+            memcpy(pEP0_DataBuf,pDescr,len);
+          }
+        }
+        else if(pSetupReqPak->bRequestType == 0x40)
+        {
+          /* CH340 host-to-device requests use the SETUP packet only. */
+          Ch340HandleVendorOut(pSetupReqPak);
+          len = 0;
         }
         else
         {

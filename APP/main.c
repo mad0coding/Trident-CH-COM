@@ -45,7 +45,7 @@ void Main_Circulation()
     while(1)
     {
         TMOS_SystemProcess();
-		//LED_SET(KEY_STATE);
+		//LED_SET(KEY_GET);
         LED_OFF;
     }
 }
@@ -86,6 +86,12 @@ int main(void)
 	UART1_INTCfg(ENABLE, RB_IER_RECV_RDY | RB_IER_LINE_STAT);
 	PFIC_EnableIRQ(UART1_IRQn);
 #endif
+	// 初始化串口0
+	GPIOA_ModeCfg(bTXD0_, GPIO_ModeOut_PP_5mA);
+	GPIOA_ModeCfg(bRXD0_, GPIO_ModeIN_PU);
+	UART0_DefInit();
+	R16_PIN_ALTERNATE |= RB_PIN_UART0; // 引脚重映射
+
 //	// PWM测试代码
 //	PWMX_CLKCfg(7); // 预分频 Fbase = Fsys/7
 //	PWMX_16bit_CycleCfg(65000-1); // 16位数据宽度 Ncyc = RB_PWM_CYC_VALUE + 1

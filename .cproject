@@ -181,13 +181,13 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="APP"/>
-						<entry excluding="Profile|KEY.c|LED.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="HAL"/>
+						<entry excluding="KEY.c|Profile|LED.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="HAL"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="LIB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Ld"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Profile"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="RVMSIS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Startup"/>
-						<entry excluding="CH59x_usbhostClass.c|CH59x_usbhostBase.c|CH59x_spi0.c|CH59x_timer0.c|CH59x_timer1.c|CH59x_timer2.c|CH59x_timer3.c|CH59x_uart0.c|CH59x_uart2.c|CH59x_uart3.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="StdPeriphDriver"/>
+						<entry excluding="CH59x_usbhostClass.c|CH59x_usbhostBase.c|CH59x_spi0.c|CH59x_timer0.c|CH59x_timer1.c|CH59x_timer2.c|CH59x_timer3.c|CH59x_uart2.c|CH59x_uart3.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="StdPeriphDriver"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -209,5 +209,4 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	
 </cproject>

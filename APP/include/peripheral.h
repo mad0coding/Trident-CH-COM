@@ -30,8 +30,8 @@ extern "C" {
 /*********************************************************************
  * MACROS
  */
-#define KEY_STATE			(!GPIOB_ReadPortPin(bRXD0))
-#define LED_INV				GPIOA_InverseBits(bTXD1)
+#define KEY_GET			    (!GPIOB_ReadPortPin(bRXD0))
+#define LED_TOG				GPIOA_InverseBits(bTXD1)
 #define LED_ON				GPIOA_SetBits(bTXD1)
 #define LED_OFF				GPIOA_ResetBits(bTXD1)
 #define LED_SET(state)		do{(state) ? LED_ON : LED_OFF;}while(0)
