@@ -5,16 +5,17 @@
  * Date               : 2020/08/06
  * Description        : 外设从机应用主函数及任务系统初始化
  *********************************************************************************
- * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for 
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
- *******************************************************************************/
+* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+* Attention: This software (modified or not) and binary are used for 
+* microcontroller manufactured by Nanjing Qinheng Microelectronics.
+*******************************************************************************/
 
 /******************************************************************************/
 /* 头文件包含 */
 #include "CONFIG.h"
 #include "HAL.h"
 #include "peripheral.h"
+#include "central.h"
 #include "app_usb.h"
 #include "Storage.h"
 #include "UART.h"
@@ -23,6 +24,7 @@
 
 // Global variables
 uint8_t SysMode = SYS_MODE_COM2BLE;
+uint8_t BleMode = BLE_MODE_CENTRAL;//BLE_MODE_PERIPHERAL;
 
 /*********************************************************************
  * GLOBAL TYPEDEFS
@@ -44,15 +46,15 @@ __HIGH_CODE
 __attribute__((noinline))
 void Main_Circulation()
 {
-    while(1)
-    {
-        TMOS_SystemProcess();
+	while(1)
+	{
+		TMOS_SystemProcess();
 		//LED_SET(KEY_GET);
-        LED_OFF;
+		LED_OFF;
 		// LED_SET(UART_FlowDTR); // display flow ctrl out signal
 		// if(KEY_GET) UART_SetFlowInputs(UART_FLOW_INPUT_CTS, UART_FLOW_INPUT_CTS); // set flow ctrl in signal
 		// else UART_SetFlowInputs(UART_FLOW_INPUT_CTS, ~UART_FLOW_INPUT_CTS);
-    }
+	}
 }
 
 /*********************************************************************
@@ -65,12 +67,12 @@ void Main_Circulation()
 int main(void)
 {
 #if(defined(DCDC_ENABLE)) && (DCDC_ENABLE == TRUE)
-    PWR_DCDCCfg(ENABLE);
+	PWR_DCDCCfg(ENABLE);
 #endif
-    SetSysClock(CLK_SOURCE_PLL_60MHz);
+	SetSysClock(CLK_SOURCE_PLL_60MHz);
 #if(defined(HAL_SLEEP)) && (HAL_SLEEP == TRUE)
-    GPIOA_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
-    GPIOB_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
+	GPIOA_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
+	GPIOB_ModeCfg(GPIO_Pin_All, GPIO_ModeIN_PU);
 #endif
 
 	GPIOA_ModeCfg(bTXD1, GPIO_ModeOut_PP_5mA); // LED
@@ -96,20 +98,26 @@ int main(void)
 //	R16_PWM4_DATA = 300;
 //	while(1);
 	
-    PRINT("%s\n", VER_LIB);
+	PRINT("%s\n", VER_LIB);
 	printf("Test.\n");
-    CH59x_BLEInit();
-    HAL_Init();
-    GAPRole_PeripheralInit();
-    Peripheral_Init();
-    app_usb_init();
+	CH59x_BLEInit();
+	HAL_Init();
+	if(BleMode == BLE_MODE_CENTRAL){ // central mode
+		GAPRole_CentralInit();
+		Central_Init();
+	}
+	else{ // peripheral mode
+		GAPRole_PeripheralInit();
+		Peripheral_Init();
+	}
+	app_usb_init();
 //	for(int i = 0; i < 5; i++){
 //		LED_ON;
 //		mDelaymS(500);
 //		LED_OFF;
 //		mDelaymS(500);
 //	}
-    Main_Circulation();
+	Main_Circulation();
 }
 
 /******************************** endfile @ main ******************************/

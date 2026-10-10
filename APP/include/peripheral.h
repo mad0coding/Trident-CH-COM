@@ -30,7 +30,7 @@ extern "C" {
 /*********************************************************************
  * MACROS
  */
-#define KEY_GET			    (!GPIOB_ReadPortPin(bRXD0))
+#define KEY_GET				(!GPIOB_ReadPortPin(bRXD0))
 #define LED_TOG				GPIOA_InverseBits(bTXD1)
 #define LED_ON				GPIOA_SetBits(bTXD1)
 #define LED_OFF				GPIOA_ResetBits(bTXD1)
@@ -39,6 +39,8 @@ extern "C" {
 #define SYS_MODE_COM2UART	1
 #define SYS_MODE_BLE2UART	2
 #define SYS_MODE_COM2BLE	3
+#define BLE_MODE_PERIPHERAL	0
+#define BLE_MODE_CENTRAL	1
 
 // Peripheral Task Events
 #define SBP_START_DEVICE_EVT    0x0001
@@ -64,6 +66,10 @@ typedef struct
 extern MiniRingBuf *RingBufTxUSB, *RingBufTxBLE, *RingBufTxUART;
 extern MiniRingBuf *RingBufRxUSB, *RingBufRxBLE, *RingBufRxUART;
 extern uint8_t Peripheral_TaskID;
+
+/* Shared serial bridge setup.  Both BLE roles use the same two buffers and
+ * routing pointers; only one role is initialized after reset. */
+extern void Bridge_Init(void);
 /*********************************************************************
  * FUNCTIONS
  */

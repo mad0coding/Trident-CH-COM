@@ -245,6 +245,16 @@ void Peripheral_Init()
     // Setup a delayed profile startup
     tmos_set_event(Peripheral_TaskID, SBP_START_DEVICE_EVT);
 
+    Bridge_Init();
+}
+
+/*
+ * Both Peripheral_Init() and Central_Init() use this bridge.  Keeping the
+ * buffers and routing pointers in one place ensures USB/UART code need not
+ * know which BLE role is running.
+ */
+void Bridge_Init(void)
+{
     mrb_init(&RingBuf0, RingBufData0, 2048, MRB_SET_SKIPWRITE | MRB_SET_SKIPREAD);
     mrb_init(&RingBuf1, RingBufData1, 2048, MRB_SET_SKIPWRITE | MRB_SET_SKIPREAD);
     if(SysMode == SYS_MODE_COM2UART){ // USB-UART
