@@ -15,7 +15,6 @@
  */
 
 #include "CONFIG.h"
-#include "gattprofile.h"
 #include "stdint.h"
 #include "ble_usb_service.h"
 
@@ -28,10 +27,11 @@
  * CONSTANTS
  */
 
-#define SERVAPP_NUM_ATTR_SUPPORTED    7
+#define SERVAPP_NUM_ATTR_SUPPORTED    8
 
-#define RAWPASS_TX_VALUE_HANDLE       2
-#define RAWPASS_RX_VALUE_HANDLE       5
+#define BLE_USB_TX_VALUE_HANDLE       2
+#define BLE_USB_RX_VALUE_HANDLE       5
+#define BLE_USB_CTRL_VALUE_HANDLE     7
 /*********************************************************************
  * TYPEDEFS
  */
@@ -51,6 +51,10 @@ const uint8_t ble_usb_RxCharUUID[ATT_BT_UUID_SIZE] =
 // Characteristic tx uuid
 const uint8_t ble_usb_TxCharUUID[ATT_BT_UUID_SIZE] =
     {0xf1, 0xff};
+
+// Characteristic debug/control uuid
+const uint8_t ble_usb_CtrlCharUUID[ATT_BT_UUID_SIZE] =
+    {0xf3, 0xff};
 
 /*********************************************************************
  * EXTERNAL VARIABLES
@@ -73,30 +77,32 @@ static ble_usb_ProfileChangeCB_t ble_usb_AppCBs = NULL;
 // Profile Service attribute
 static const gattAttrType_t ble_usb_Service = {ATT_BT_UUID_SIZE, ble_usb_ServiceUUID};
 
-// Profile Characteristic 1 Properties
-//static uint8_t ble_usb_RxCharProps = GATT_PROP_WRITE_NO_RSP| GATT_PROP_WRITE;
+// RX: Central -> device serial data
 static uint8_t ble_usb_RxCharProps = GATT_PROP_WRITE_NO_RSP | GATT_PROP_WRITE;
 
 // Characteristic 1 Value
 static uint8_t ble_usb_RxCharValue[BLE_USB_RX_BUFF_SIZE];
 //static uint8_t ble_usb_RxCharValue[1];
 
-// Profile Characteristic 2 Properties
-//static uint8_t ble_usb_TxCharProps = GATT_PROP_NOTIFY| GATT_PROP_INDICATE;
+// TX: Device -> Central serial data
 static uint8_t ble_usb_TxCharProps = GATT_PROP_NOTIFY;
 
 // Characteristic 2 Value
 static uint8_t ble_usb_TxCharValue = 0;
 
-// Simple Profile Characteristic 2 User Description
 static gattCharCfg_t ble_usb_TxCCCD[4];
+
+// DBG/CTRL: Small command and status buffer.
+static uint8_t  ble_usb_CtrlCharProps = GATT_PROP_READ | GATT_PROP_WRITE;
+static uint8_t  ble_usb_CtrlCharValue[BLE_USB_CTRL_BUFF_SIZE];
+static uint16_t ble_usb_CtrlCharLen = 0;
 
 /*********************************************************************
  * Profile Attributes - Table
  */
 
 static gattAttribute_t ble_usb_ProfileAttrTbl[] = {
-    // Simple Profile Service
+    // Wireless UART Service (0xFFF0)
     {
         {ATT_BT_UUID_SIZE, primaryServiceUUID}, /* type */
         GATT_PERMIT_READ,                       /* permissions */
@@ -104,40 +110,54 @@ static gattAttribute_t ble_usb_ProfileAttrTbl[] = {
         (uint8_t *)&ble_usb_Service              /* pValue */
     },
 
-    // Characteristic 2 Declaration
+    // TX Characteristic Declaration (0xFFF1)
     {
         {ATT_BT_UUID_SIZE, characterUUID},
         GATT_PERMIT_READ,
         0,
         &ble_usb_TxCharProps},
 
-    // Characteristic Value 2
+    // TX Characteristic Value
     {
         {ATT_BT_UUID_SIZE, ble_usb_TxCharUUID},
         0,
         0,
         (uint8_t *)&ble_usb_TxCharValue},
 
-    // Characteristic 2 User Description
+    // TX Client Characteristic Configuration
     {
         {ATT_BT_UUID_SIZE, clientCharCfgUUID},
         GATT_PERMIT_READ | GATT_PERMIT_WRITE,
         0,
         (uint8_t *)ble_usb_TxCCCD},
 
-    // Characteristic 1 Declaration
+    // RX Characteristic Declaration (0xFFF2)
     {
         {ATT_BT_UUID_SIZE, characterUUID},
         GATT_PERMIT_READ,
         0,
         &ble_usb_RxCharProps},
 
-    // Characteristic Value 1
+    // RX Characteristic Value
     {
         {ATT_BT_UUID_SIZE, ble_usb_RxCharUUID},
         GATT_PERMIT_WRITE,
         0,
         &ble_usb_RxCharValue[0]},
+
+    // DBG/CTRL Characteristic Declaration (0xFFF3)
+    {
+        {ATT_BT_UUID_SIZE, characterUUID},
+        GATT_PERMIT_READ,
+        0,
+        &ble_usb_CtrlCharProps},
+
+    // DBG/CTRL Characteristic Value
+    {
+        {ATT_BT_UUID_SIZE, ble_usb_CtrlCharUUID},
+        GATT_PERMIT_READ | GATT_PERMIT_WRITE,
+        0,
+        ble_usb_CtrlCharValue},
 
 };
 
@@ -168,7 +188,7 @@ gattServiceCBs_t ble_usb_ProfileCBs = {
 /*********************************************************************
  * @fn      ble_usb_AddService
  *
- * @brief   Initializes the Simple Profile service by registering
+ * @brief   Initializes the wireless UART service by registering
  *          GATT attributes with the GATT server.
  *
  * @param   services - services to add. This is a bit map and can
@@ -216,24 +236,37 @@ static bStatus_t ble_usb_ReadAttrCB(uint16_t connHandle, gattAttribute_t *pAttr,
                                      uint8_t *pValue, uint16_t *pLen, uint16_t offset, uint16_t maxLen, uint8_t method)
 {
     bStatus_t status = SUCCESS;
-    PRINT("ReadAttrCB\n");
-
-    // Make sure it's not a blob operation (no attributes in the profile are long)
     if(pAttr->type.len == ATT_BT_UUID_SIZE)
     {
-        // 16-bit UUID
         uint16_t uuid = BUILD_UINT16(pAttr->type.uuid[0], pAttr->type.uuid[1]);
         if(uuid == GATT_CLIENT_CHAR_CFG_UUID)
         {
             *pLen = 2;
             tmos_memcpy(pValue, pAttr->pValue, 2);
         }
+        else if(uuid == BUILD_UINT16(ble_usb_CtrlCharUUID[0], ble_usb_CtrlCharUUID[1]))
+        {
+            if(offset > ble_usb_CtrlCharLen)
+            {
+                status = ATT_ERR_INVALID_OFFSET;
+            }
+            else
+            {
+                *pLen = MIN(maxLen, ble_usb_CtrlCharLen - offset);
+                tmos_memcpy(pValue, &ble_usb_CtrlCharValue[offset], *pLen);
+            }
+        }
+        else
+        {
+            *pLen = 0;
+            status = ATT_ERR_ATTR_NOT_FOUND;
+        }
     }
     return (status);
 }
 
 /*********************************************************************
- * @fn      simpleProfile_WriteAttrCB
+ * @fn      ble_usb_WriteAttrCB
  *
  * @brief   Validate attribute data prior to a write operation
  *
@@ -276,8 +309,7 @@ static bStatus_t ble_usb_WriteAttrCB(uint16_t connHandle, gattAttribute_t *pAttr
             }
         }
 
-        //  UUID
-        if(pAttr->handle == ble_usb_ProfileAttrTbl[RAWPASS_RX_VALUE_HANDLE].handle)
+        if(pAttr->handle == ble_usb_ProfileAttrTbl[BLE_USB_RX_VALUE_HANDLE].handle)
         {
             if(ble_usb_AppCBs)
             {
@@ -286,6 +318,27 @@ static bStatus_t ble_usb_WriteAttrCB(uint16_t connHandle, gattAttribute_t *pAttr
                 evt.data.length = (uint16_t)len;
                 evt.data.p_data = pValue;
                 ble_usb_AppCBs(connHandle, &evt);
+            }
+        }
+        else if(pAttr->handle == ble_usb_ProfileAttrTbl[BLE_USB_CTRL_VALUE_HANDLE].handle)
+        {
+            if((offset != 0) || (len > BLE_USB_CTRL_BUFF_SIZE))
+            {
+                status = ATT_ERR_INVALID_VALUE_SIZE;
+            }
+            else
+            {
+                ble_usb_CtrlCharLen = len;
+                tmos_memcpy(ble_usb_CtrlCharValue, pValue, len);
+
+                if(ble_usb_AppCBs)
+                {
+                    ble_usb_evt_t evt;
+                    evt.type = BLE_USB_EVT_CTRL_DATA_RECEIVED;
+                    evt.data.length = len;
+                    evt.data.p_data = pValue;
+                    ble_usb_AppCBs(connHandle, &evt);
+                }
             }
         }
     }
@@ -354,7 +407,7 @@ bStatus_t ble_usb_notify(uint16_t connHandle, attHandleValueNoti_t *pNoti, uint8
     if(value & GATT_CLIENT_CFG_NOTIFY)
     {
         // Set the handle
-        pNoti->handle = ble_usb_ProfileAttrTbl[RAWPASS_TX_VALUE_HANDLE].handle;
+        pNoti->handle = ble_usb_ProfileAttrTbl[BLE_USB_TX_VALUE_HANDLE].handle;
 
         // Send the Indication
         return GATT_Notification(connHandle, pNoti, FALSE);

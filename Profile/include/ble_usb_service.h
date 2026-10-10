@@ -21,12 +21,14 @@ extern "C" {
 #include "stdint.h"
 
 #define BLE_USB_RX_BUFF_SIZE    1
+#define BLE_USB_CTRL_BUFF_SIZE  20
 
 typedef enum
 {
     BLE_USB_EVT_TX_NOTI_DISABLED = 1,
     BLE_USB_EVT_TX_NOTI_ENABLED,
     BLE_USB_EVT_BLE_DATA_RECIEVED,
+    BLE_USB_EVT_CTRL_DATA_RECEIVED,
 } ble_usb_evt_type_t;
 
 typedef struct

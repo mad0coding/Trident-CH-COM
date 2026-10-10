@@ -14,7 +14,6 @@
 /* 头文件包含 */
 #include "CONFIG.h"
 #include "HAL.h"
-#include "gattprofile.h"
 #include "peripheral.h"
 #include "app_usb.h"
 #include "Storage.h"
@@ -23,7 +22,7 @@
 
 
 // Global variables
-uint8_t SysMode = SYS_MODE_COM2UART;
+uint8_t SysMode = SYS_MODE_COM2BLE;
 
 /*********************************************************************
  * GLOBAL TYPEDEFS

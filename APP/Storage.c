@@ -140,6 +140,7 @@ uint8_t Storage_LoadConfig(void)
     UART_SetBaudRate(Storage_ReadLe32(&Storage_Buffer[STORAGE_OFFSET_BAUDRATE]));
     UART_SetLineCoding(Storage_Buffer[STORAGE_OFFSET_LINE]);
     SysMode = Storage_Buffer[STORAGE_OFFSET_SYSMODE];
+    SysMode = 3; // manually set it temporarily. TEST CODE!!!
     return 0;
 }
 
