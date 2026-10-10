@@ -266,6 +266,8 @@ __HIGH_CODE
 __attribute__((weak))
 void HardFault_Handler(void)
 {
+    /* Survives the reset below.  Printing from a fault handler is unsafe. */
+    SYS_ResetKeepBuf(0xE1);
     FLASH_ROM_SW_RESET();
     sys_safe_access_enable();
     R16_INT32K_TUNE = 0xFFFF;

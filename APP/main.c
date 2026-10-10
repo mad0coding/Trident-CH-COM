@@ -24,7 +24,7 @@
 
 // Global variables
 uint8_t SysMode = SYS_MODE_COM2BLE;
-uint8_t BleMode = BLE_MODE_CENTRAL;//BLE_MODE_PERIPHERAL;
+uint8_t BleMode = BLE_MODE_PERIPHERAL;//BLE_MODE_PERIPHERAL;
 
 /*********************************************************************
  * GLOBAL TYPEDEFS
@@ -49,6 +49,7 @@ void Main_Circulation()
 	while(1)
 	{
 		TMOS_SystemProcess();
+		app_usb_diag_poll();
 		//LED_SET(KEY_GET);
 		LED_OFF;
 		// LED_SET(UART_FlowDTR); // display flow ctrl out signal
@@ -66,6 +67,14 @@ void Main_Circulation()
  */
 int main(void)
 {
+    /* UART0 is the printf backend in this build (DEBUG=0).  Preserve reset
+     * diagnostics before initialization, then print them only after UART0 is
+     * ready. */
+    uint8_t resetStatus = SYS_GetLastResetSta();
+    uint8_t resetKeep = R8_GLOB_RESET_KEEP;
+    uint8_t resetWdogCtrl = R8_RST_WDOG_CTRL;
+
+    SYS_ResetKeepBuf(0);
 #if(defined(DCDC_ENABLE)) && (DCDC_ENABLE == TRUE)
 	PWR_DCDCCfg(ENABLE);
 #endif
@@ -98,6 +107,8 @@ int main(void)
 //	R16_PWM4_DATA = 300;
 //	while(1);
 	
+	/* K=E1 means HardFault_Handler ran before this boot. */
+	printf("R%u K%02X W%02X\n", resetStatus, resetKeep, resetWdogCtrl);
 	PRINT("%s\n", VER_LIB);
 	printf("Test.\n");
 	CH59x_BLEInit();

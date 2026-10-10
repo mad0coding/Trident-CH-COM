@@ -24,6 +24,8 @@ extern void app_usb_init(void);
 extern uint8_t USBSendData(void);
 extern void USB_NotifyFlowStatus(void);
 extern void USB_ResendFlowStatus(void);
+/* Emits deferred USB diagnostics.  Must be called outside USB IRQ context. */
+extern void app_usb_diag_poll(void);
 /*********************************************************************
 *********************************************************************/
 

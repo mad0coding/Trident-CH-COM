@@ -35,6 +35,16 @@ uint8_t SetupReqCode;
 UINT16 SetupReqLen;
 const uint8_t *pDescr;
 
+/* Keep USB IRQ short: record exceptional conditions here and print them from
+ * app_usb_diag_poll() in normal task context. */
+#define USB_DIAG_RING_FULL   0x01
+#define USB_DIAG_RING_HIGH   0x02
+#define USB_DIAG_BUS_RESET   0x04
+#define USB_DIAG_TIMER_FAIL  0x08
+static volatile uint8_t UsbDiagFlags;
+static volatile uint8_t UsbDiagDropLen;
+static volatile uint16_t UsbDiagQueueLen;
+
 #define DevEP0SIZE  0x40
 // 设备描述符
 const uint8_t MyDevDescr[] = { 0x12,0x01,0x10,0x01,0xFF,0x00,0x00,DevEP0SIZE,
@@ -347,12 +357,25 @@ void DevEP2_OUT_Deal( uint8_t l )
 
   if(!RingBufRxUSB) return;
 	if(mrb_write(RingBufRxUSB, pEP2_OUT_DataBuf, l) != l){ // 读取USB数据到缓存
-		PRINT("RingBufBLE ERR \n");
+        UsbDiagDropLen = l;
+        UsbDiagQueueLen = mrb_len(RingBufRxUSB);
+        UsbDiagFlags |= USB_DIAG_RING_FULL;
 	}
 	if(mrb_len(RingBufRxUSB) > 1024){ // 缓存使用过半 实际只留一个USB包的空间即可 但这里保守处理
 		R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_R_RES ) | UEP_R_RES_NAK; // 设为忙响应
+		if(mrb_len(RingBufRxUSB) > 1792)
+		{
+			UsbDiagQueueLen = mrb_len(RingBufRxUSB);
+			UsbDiagFlags |= USB_DIAG_RING_HIGH;
+		}
 	}
-  if(RingBufTxBLE) tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*32*/2); // 准备触发发送任务
+  if(RingBufTxBLE)
+  {
+    if(!tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*32*/2))
+    {
+      UsbDiagFlags |= USB_DIAG_TIMER_FAIL;
+    }
+  }
   else if(RingBufTxUART) tmos_set_event(Peripheral_TaskID, SBP_UART_TX_EVT); // 触发发送任务
 }
 
@@ -724,6 +747,12 @@ void USB_DevTransProcess( void )
   }
   else if ( intflag & RB_UIF_BUS_RST )
   {
+    /* Enumeration also resets the bus.  Only report resets after the host
+     * had configured this device. */
+    if(DevConfig)
+    {
+      UsbDiagFlags |= USB_DIAG_BUS_RESET;
+    }
     R8_USB_DEV_AD = 0;
     DevConfig = 0;
     Ready = 0;
@@ -751,6 +780,39 @@ void USB_DevTransProcess( void )
   else
   {
     R8_USB_INT_FG = intflag;
+  }
+}
+
+/*********************************************************************
+ * @fn      app_usb_diag_poll
+ *
+ * @brief   Print exceptional USB conditions outside the USB ISR.
+ */
+void app_usb_diag_poll(void)
+{
+  uint8_t flags = UsbDiagFlags;
+
+  if(!flags)
+  {
+    return;
+  }
+
+  UsbDiagFlags &= ~flags;
+  if(flags & USB_DIAG_BUS_RESET)
+  {
+    printf("UB\n");
+  }
+  if(flags & USB_DIAG_RING_HIGH)
+  {
+    printf("UQ%u\n", UsbDiagQueueLen);
+  }
+  if(flags & USB_DIAG_RING_FULL)
+  {
+    printf("UO%u/%u\n", UsbDiagDropLen, UsbDiagQueueLen);
+  }
+  if(flags & USB_DIAG_TIMER_FAIL)
+  {
+    printf("UT\n");
   }
 }
 

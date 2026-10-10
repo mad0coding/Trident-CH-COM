@@ -131,6 +131,10 @@ static uint8_t attDeviceName[GAP_DEVICE_NAME_LEN] = "CH592 ble usb";
 static peripheralConnItem_t peripheralConnList;
 
 static uint16_t peripheralMTU = ATT_MTU_SIZE;
+static uint16_t bleNotifyFailCount;
+static uint8_t bleNotifyFailReported;
+static uint8_t bleMtuReported;
+static uint8_t bleOversizeReported;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -365,12 +369,33 @@ uint16_t Peripheral_ProcessEvent(uint8_t task_id, uint16_t events)
         {
             uint8_t buf[peripheralMTU - 3];
             uint16_t len = mrb_len(RingBufTxBLE);
+            uint8_t status;
             if(len > peripheralMTU - 3) len = peripheralMTU - 3; // 限制长度
+
+            /* A phone may negotiate an MTU larger than this build's local
+             * BLE buffer.  Record the first attempted oversized packet. */
+            if((len > (BLE_BUFF_MAX_LEN - 3)) && !bleOversizeReported)
+            {
+                bleOversizeReported = TRUE;
+                printf("BL%u/%u\n", len, peripheralMTU);
+            }
             mrb_copy(RingBufTxBLE, buf, len);
-            if(app_usb_notify(buf, len)){ // 返回非0是发送失败
+            status = app_usb_notify(buf, len);
+            if(status){ // 返回非0是发送失败
+                if(bleNotifyFailCount != 0xFFFF)
+                {
+                    bleNotifyFailCount++;
+                }
+                if((bleNotifyFailCount >= 128) && !bleNotifyFailReported)
+                {
+                    bleNotifyFailReported = TRUE;
+                    printf("BN%02X Q%u\n", status, mrb_len(RingBufTxBLE));
+                }
                 tmos_start_task(Peripheral_TaskID, SBP_BLE_TX_EVT, /*80*/2); // 准备之后重新触发重发
                 break;
             }
+            bleNotifyFailCount = 0;
+            bleNotifyFailReported = FALSE;
             mrb_del(RingBufTxBLE, len);
         }
         if(mrb_len(RingBufTxBLE) < 1024) R8_UEP2_CTRL = (R8_UEP2_CTRL & ~MASK_UEP_R_RES) | UEP_R_RES_ACK; // 缓存足够则取消忙响应
@@ -463,7 +488,11 @@ static void Peripheral_ProcessTMOSMsg(tmos_event_hdr_t *pMsg)
             if(pMsgEvent->method == ATT_MTU_UPDATED_EVENT)
             {
                 peripheralMTU = pMsgEvent->msg.exchangeMTUReq.clientRxMTU;
-                PRINT("mtu exchange: %d\n", pMsgEvent->msg.exchangeMTUReq.clientRxMTU);
+                if((peripheralMTU > BLE_BUFF_MAX_LEN) && !bleMtuReported)
+                {
+                    bleMtuReported = TRUE;
+                    printf("BM%u/%u\n", peripheralMTU, BLE_BUFF_MAX_LEN);
+                }
             }
             break;
         }
@@ -499,6 +528,10 @@ static void Peripheral_LinkEstablished(gapRoleEvent_t *pEvent)
         peripheralConnList.connSlaveLatency = event->connLatency;
         peripheralConnList.connTimeout = event->connTimeout;
         peripheralMTU = ATT_MTU_SIZE;
+        bleNotifyFailCount = 0;
+        bleNotifyFailReported = FALSE;
+        bleMtuReported = FALSE;
+        bleOversizeReported = FALSE;
 
         // Set timer for param update event
         tmos_start_task(Peripheral_TaskID, SBP_PARAM_UPDATE_EVT, SBP_PARAM_UPDATE_DELAY);
@@ -718,7 +751,7 @@ uint8_t app_usb_notify(uint8_t *SendBuf, uint8_t l)
     static attHandleValueNoti_t noti;
 
     if (l > (peripheralMTU - 3)) {
-        PRINT("usb notify too long, current MTU: %d\n", peripheralMTU);
+        printf("BNL%u/%u\n", l, peripheralMTU);
         return bleInvalidMtuSize;
     }
     noti.len = l;
@@ -731,6 +764,10 @@ uint8_t app_usb_notify(uint8_t *SendBuf, uint8_t l)
         {
             GATT_bm_free((gattMsg_t *)&noti, ATT_HANDLE_VALUE_NOTI);
         }
+    }
+    else
+    {
+        result = bleMemAllocError;
     }
     return result;
 }
