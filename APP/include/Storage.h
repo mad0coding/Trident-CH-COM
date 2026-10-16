@@ -14,9 +14,9 @@
 
 /* Fixed, little-endian record header. */
 #define STORAGE_RECORD_HEAD          0x55AAU
-#define STORAGE_RECORD_VERSION       0x0001U
+#define STORAGE_RECORD_VERSION       0x0002U
 #define STORAGE_RECORD_HEADER_SIZE   8U
-#define STORAGE_RECORD_LENGTH        17U
+#define STORAGE_RECORD_LENGTH        18U
 
 /* Read, verify, and apply the saved configuration when it is valid. */
 void Storage_Init(void);

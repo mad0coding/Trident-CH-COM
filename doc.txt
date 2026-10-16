@@ -1,0 +1,20 @@
+DataFlash 配置存储
+===================
+
+使用用户 DataFlash 的 0x0000 起始 256 B 擦除块。每次执行 `tcc save` 都会擦除并完整重写该块；上电时仅在记录的头、版本、长度和 Fletcher-16 校验全部有效时才应用配置。
+
+记录采用小端序，当前版本为 0x0002，总长度为 18 B：
+
+| 偏移 | 长度 | 内容 |
+| --- | --- | --- |
+| 0 | 2 B | head，固定 0x55AA |
+| 2 | 2 B | version，0x0002 |
+| 4 | 2 B | length，固定 18 |
+| 6 | 2 B | Fletcher-16 校验值。计算范围为偏移 0 至 17，校验字段本身的两个字节跳过 |
+| 8 | 4 B | UART 波特率，uint32_t |
+| 12 | 1 B | UART CH340 line-coding 原始格式字节 |
+| 13 | 3 B | 保留并写零，用于使后续配置从 4 B 边界开始 |
+| 16 | 1 B | SysMode |
+| 17 | 1 B | BleMode：0=从机（BLE_MODE_PERIPHERAL），1=主机（BLE_MODE_CENTRAL） |
+
+命令行 `tcc set blemode 0` 对应从机，`tcc set blemode 1` 对应主机；命令参数、`tcc get blemode` 的返回值与保存值均直接使用内部的 0/1 枚举值。由于记录布局变更，旧版 0x0001 记录不会被加载，重新执行一次 `tcc save` 即可生成新版记录。

@@ -11,6 +11,7 @@
 
 /* Defined by main.c. */
 extern uint8_t SysMode;
+extern uint8_t BleMode;
 
 #define CMD_LINE_MAX_LENGTH  96U
 #define CMD_MAX_TOKENS       4U
@@ -273,6 +274,11 @@ static void Cmd_ExecuteGet(const char *item)
         Cmd_OutputText("sysmode ");
         Cmd_OutputUnsigned(SysMode);
     }
+    else if(Cmd_TokenEqual(item, "blemode"))
+    {
+        Cmd_OutputText("blemode ");
+        Cmd_OutputUnsigned(BleMode);
+    }
     else
     {
         Cmd_OutputText("ERR item\r\n");
@@ -356,6 +362,22 @@ static void Cmd_ExecuteSet(const char *item, const char *valueText)
             return;
         }
         SysMode = (uint8_t)value;
+    }
+    else if(Cmd_TokenEqual(item, "blemode"))
+    {
+        if(value == BLE_MODE_PERIPHERAL)
+        {
+            BleMode = BLE_MODE_PERIPHERAL;
+        }
+        else if(value == BLE_MODE_CENTRAL)
+        {
+            BleMode = BLE_MODE_CENTRAL;
+        }
+        else
+        {
+            Cmd_OutputText("ERR value\r\n");
+            return;
+        }
     }
     else
     {

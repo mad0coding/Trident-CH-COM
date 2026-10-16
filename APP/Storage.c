@@ -7,8 +7,9 @@
 #include "Storage.h"
 #include "UART.h"
 
-/* Defined by main.c; it is deliberately stored as one byte. */
+/* Defined by main.c; both modes are deliberately stored as one byte. */
 extern uint8_t SysMode;
+extern uint8_t BleMode;
 
 #define STORAGE_OFFSET_HEAD       0U
 #define STORAGE_OFFSET_VERSION    2U
@@ -17,6 +18,7 @@ extern uint8_t SysMode;
 #define STORAGE_OFFSET_BAUDRATE   8U
 #define STORAGE_OFFSET_LINE       12U
 #define STORAGE_OFFSET_SYSMODE    16U
+#define STORAGE_OFFSET_BLEMODE    17U
 
 __attribute__((aligned(4))) static uint8_t Storage_Buffer[STORAGE_DATAFLASH_BLOCK_SIZE];
 
@@ -86,6 +88,7 @@ static void Storage_BuildRecord(void)
     Storage_Buffer[14] = 0;
     Storage_Buffer[15] = 0;
     Storage_Buffer[STORAGE_OFFSET_SYSMODE] = SysMode;
+    Storage_Buffer[STORAGE_OFFSET_BLEMODE] = BleMode;
     Storage_WriteLe16(&Storage_Buffer[STORAGE_OFFSET_CHECKSUM],
                       Storage_Fletcher16(Storage_Buffer, STORAGE_RECORD_LENGTH));
 }
@@ -106,7 +109,7 @@ void Storage_Init(void)
 /*********************************************************************
  * @fn      Storage_LoadConfig
  *
- * @brief   Read, verify, and apply the saved UART configuration and SysMode.
+ * @brief   Read, verify, and apply the saved UART, system, and BLE modes.
  *
  * @return  0 on success, nonzero if no valid record is available
  */
@@ -140,14 +143,14 @@ uint8_t Storage_LoadConfig(void)
     UART_SetBaudRate(Storage_ReadLe32(&Storage_Buffer[STORAGE_OFFSET_BAUDRATE]));
     UART_SetLineCoding(Storage_Buffer[STORAGE_OFFSET_LINE]);
     SysMode = Storage_Buffer[STORAGE_OFFSET_SYSMODE];
-    SysMode = 3; // manually set it temporarily. TEST CODE!!!
+    BleMode = Storage_Buffer[STORAGE_OFFSET_BLEMODE];
     return 0;
 }
 
 /*********************************************************************
  * @fn      Storage_SaveConfig
  *
- * @brief   Save the current UART configuration and SysMode to DataFlash.
+ * @brief   Save the current UART configuration and system/BLE modes to DataFlash.
  *
  * @return  0 on success, nonzero on erase or write failure
  */
