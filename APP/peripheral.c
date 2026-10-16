@@ -16,6 +16,7 @@
  */
 #include "CONFIG.h"
 #include "peripheral.h"
+#include "cmd.h"
 #include "ble_usb_service.h"
 #include "app_usb.h"
 
@@ -495,6 +496,7 @@ static void Peripheral_LinkEstablished(gapRoleEvent_t *pEvent)
     else
     {
         peripheralConnList.connHandle = event->connectionHandle;
+        Cmd_SetBleConnected(1U);
         peripheralConnList.connInterval = event->connInterval;
         peripheralConnList.connSlaveLatency = event->connLatency;
         peripheralConnList.connTimeout = event->connTimeout;
@@ -525,6 +527,7 @@ static void Peripheral_LinkTerminated(gapRoleEvent_t *pEvent)
 
     if(event->connectionHandle == peripheralConnList.connHandle)
     {
+        Cmd_SetBleConnected(0U);
         peripheralConnList.connHandle = GAP_CONNHANDLE_INIT;
         peripheralConnList.connInterval = 0;
         peripheralConnList.connSlaveLatency = 0;

@@ -20,6 +20,21 @@ static uint8_t Cmd_LineLength;
 static uint8_t Cmd_LineOverflow;
 static uint8_t Cmd_ModeActive;
 
+static const uint8_t Cmd_DtrSequence[] = {0, 1, 1, 1};
+static const uint8_t Cmd_RtsSequence[] = {1, 1, 0, 1};
+
+#define CMD_FLOW_SEQUENCE_LENGTH ((uint8_t)sizeof(Cmd_DtrSequence))
+#define CMD_FLOW_WINDOW_TICKS    (5UL * 1600UL)
+
+static uint32_t Cmd_FlowStartTick;
+static uint8_t Cmd_FlowIndex;
+static uint8_t Cmd_FlowMatcherLocked;
+static uint8_t Cmd_FlowMatcherInitialized;
+static volatile uint8_t Cmd_BleConnected;
+static uint8_t Cmd_EntryNoticePending;
+
+static void Cmd_OutputText(const char *text);
+
 /*********************************************************************
  * @fn      Cmd_SetMode
  *
@@ -27,9 +42,21 @@ static uint8_t Cmd_ModeActive;
  */
 void Cmd_SetMode(uint8_t enable)
 {
+    uint8_t wasActive = Cmd_ModeActive;
+
     Cmd_ModeActive = enable ? 1U : 0U;
     Cmd_LineLength = 0;
     Cmd_LineOverflow = 0;
+
+    if(Cmd_ModeActive && !wasActive)
+    {
+        Cmd_EntryNoticePending = 1U;
+        Cmd_NotifyUsbReady();
+    }
+    else if(!Cmd_ModeActive)
+    {
+        Cmd_EntryNoticePending = 0U;
+    }
 }
 
 /*********************************************************************
@@ -40,6 +67,79 @@ void Cmd_SetMode(uint8_t enable)
 uint8_t Cmd_IsActive(void)
 {
     return Cmd_ModeActive;
+}
+
+void Cmd_NotifyUsbReady(void)
+{
+    if(Cmd_EntryNoticePending && Cmd_ModeActive && RingBufTxUSB)
+    {
+        Cmd_EntryNoticePending = 0U;
+        Cmd_OutputText("Now in cmd mode.\r\n");
+    }
+}
+
+void Cmd_FlowSequenceInit(void)
+{
+    Cmd_FlowStartTick = TMOS_GetSystemClock();
+    Cmd_FlowIndex = 0U;
+    Cmd_FlowMatcherLocked = Cmd_IsActive() ? 1U : 0U;
+    Cmd_FlowMatcherInitialized = 1U;
+    Cmd_BleConnected = 0U;
+}
+
+void Cmd_SetBleConnected(uint8_t connected)
+{
+    Cmd_BleConnected = connected ? 1U : 0U;
+
+    if(connected)
+    {
+        Cmd_FlowMatcherLocked = 1U;
+        Cmd_FlowIndex = 0U;
+    }
+}
+
+void Cmd_CheckFlowSequence(uint8_t dtr, uint8_t rts)
+{
+    uint32_t elapsed;
+
+    if((!Cmd_FlowMatcherInitialized) || Cmd_FlowMatcherLocked ||
+       Cmd_BleConnected || Cmd_IsActive())
+    {
+        return;
+    }
+
+    elapsed = TMOS_GetSystemClock() - Cmd_FlowStartTick;
+    if((Cmd_FlowIndex == 0U) && (elapsed >= CMD_FLOW_WINDOW_TICKS))
+    {
+        Cmd_FlowMatcherLocked = 1U;
+        return;
+    }
+
+    dtr = dtr ? 1U : 0U;
+    rts = rts ? 1U : 0U;
+
+    if((dtr == Cmd_DtrSequence[Cmd_FlowIndex]) &&
+       (rts == Cmd_RtsSequence[Cmd_FlowIndex]))
+    {
+        Cmd_FlowIndex++;
+        if(Cmd_FlowIndex >= CMD_FLOW_SEQUENCE_LENGTH)
+        {
+            Cmd_FlowMatcherLocked = 1U;
+            Cmd_FlowIndex = 0U;
+            Cmd_SetMode(1U);
+        }
+        return;
+    }
+
+    Cmd_FlowIndex = 0U;
+    if(elapsed >= CMD_FLOW_WINDOW_TICKS)
+    {
+        Cmd_FlowMatcherLocked = 1U;
+    }
+    else if((dtr == Cmd_DtrSequence[0]) && (rts == Cmd_RtsSequence[0]))
+    {
+        Cmd_FlowIndex = 1U;
+    }
 }
 
 static uint8_t Cmd_ToLower(uint8_t c)

@@ -18,6 +18,12 @@ void Cmd_SetMode(uint8_t enable);
 /* Returns non-zero while command mode owns the selected input transport. */
 uint8_t Cmd_IsActive(void);
 
+/* Initialize and feed the boot-time DTR/RTS command-entry sequence. */
+void Cmd_FlowSequenceInit(void);
+void Cmd_SetBleConnected(uint8_t connected);
+void Cmd_CheckFlowSequence(uint8_t dtr, uint8_t rts);
+void Cmd_NotifyUsbReady(void);
+
 /* Feed received command data one byte at a time (for example from UART). */
 void Cmd_InputByte(uint8_t byte);
 

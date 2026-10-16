@@ -19,10 +19,12 @@ uint32_t UART_GetBaudRate(void);
 uint8_t UART_GetLineCoding(void);
 
 /*
- * Software modem-signal state for UART1.  A value of 1 represents a
- * physical high level.  DTR/RTS are outputs controlled by the USB host;
- * CTS/DSR/RI/DCD are inputs which application code can later update from
- * whichever GPIOs are assigned to them.
+ * Software modem-signal state for UART1.  UART_FlowDTR and UART_FlowRTS
+ * use logical modem semantics: 1=Asserted and 0=Deasserted.  The CH340
+ * request carries active-low DTR#/RTS# values; UART_SetFlowOutputs()
+ * normalizes them before storing.  GPIO mapping may apply active-low
+ * electrical polarity later.  UART_FlowCTS/DSR/RI/DCD use the same logical
+ * convention; GPIO input mapping may apply their active-low polarity later.
  */
 extern volatile uint8_t UART_FlowDTR;
 extern volatile uint8_t UART_FlowRTS;

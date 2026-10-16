@@ -51,9 +51,9 @@ void Main_Circulation()
 		TMOS_SystemProcess();
 		//LED_SET(KEY_GET);
 		LED_OFF;
-		// LED_SET(UART_FlowDTR); // display flow ctrl out signal
-		// if(KEY_GET) UART_SetFlowInputs(UART_FLOW_INPUT_CTS, UART_FLOW_INPUT_CTS); // set flow ctrl in signal
-		// else UART_SetFlowInputs(UART_FLOW_INPUT_CTS, ~UART_FLOW_INPUT_CTS);
+		LED_SET(UART_FlowDTR); // display flow ctrl out signal
+		if(KEY_GET) UART_SetFlowInputs(UART_FLOW_INPUT_CTS, UART_FLOW_INPUT_CTS); // set flow ctrl in signal
+		else UART_SetFlowInputs(UART_FLOW_INPUT_CTS, ~UART_FLOW_INPUT_CTS);
 	}
 }
 
@@ -102,6 +102,7 @@ int main(void)
 	printf("Test.\n");
 	CH59x_BLEInit();
 	HAL_Init();
+	Cmd_FlowSequenceInit();
 	if(BleMode == BLE_MODE_CENTRAL){ // central mode
 		GAPRole_CentralInit();
 		Central_Init();
@@ -111,6 +112,7 @@ int main(void)
 		Peripheral_Init();
 	}
 	app_usb_init();
+	Cmd_NotifyUsbReady();
 //	for(int i = 0; i < 5; i++){
 //		LED_ON;
 //		mDelaymS(500);

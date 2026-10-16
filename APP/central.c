@@ -6,6 +6,7 @@
 
 #include "CONFIG.h"
 #include "central.h"
+#include "cmd.h"
 #include "peripheral.h"
 #include "app_usb.h"
 
@@ -443,6 +444,7 @@ static void centralEventCB(gapRoleEvent_t *pEvent)
                 attExchangeMTUReq_t req = { .clientRxMTU = BLE_BUFF_MAX_LEN - 4 };
                 centralLinkState = CENTRAL_LINK_CONNECTED;
                 centralConnHandle = pEvent->linkCmpl.connectionHandle;
+                Cmd_SetBleConnected(1U);
                 centralMtu = ATT_MTU_SIZE;
                 centralNotifyReady = FALSE;
                 GATT_ExchangeMTU(centralConnHandle, &req, centralTaskId);
@@ -526,6 +528,7 @@ static uint8_t centralAdvertisesWirelessUart(const uint8_t *data, uint8_t length
 
 static void centralResetLink(void)
 {
+    Cmd_SetBleConnected(0U);
     centralLinkState = CENTRAL_LINK_IDLE;
     centralDiscState = CENTRAL_DISC_IDLE;
     centralConnHandle = GAP_CONNHANDLE_INIT;

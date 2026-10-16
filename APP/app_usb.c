@@ -63,7 +63,8 @@ const uint8_t StrDesc[28] =
 
 const uint8_t Return1[2] = {0x31,0x00};
 const uint8_t Return2[2] = {0xC3,0x00};
-/* CH340 modem-state reply: bit6=RTS, bit5=DTR, bits3..0=DCD/RI/DSR/CTS. */
+/* CH340 active-low modem-state reply: bit6=RTS#, bit5=DTR#,
+ * bits3..0=DCD#/RI#/DSR#/CTS#. */
 static uint8_t Ch340ModemState[2] = {0x9F, 0x88};
 static uint8_t Ch340ReportedModemState = 0xFF;
 static volatile uint8_t Ch340ModemStatusPending = 1;
@@ -233,8 +234,8 @@ static void Ch340HandleVendorOut(PUSB_SETUP_REQ request)
         {
             UART_SetFlowOutputs(value & 0x20, value & 0x40);
             // printf("CH340 flow: RTS=%s, DTR=%s (raw=%02X)\r\n",
-            //        UART_FlowRTS ? "HIGH" : "LOW",
-            //        UART_FlowDTR ? "HIGH" : "LOW", value);
+            //        UART_FlowRTS ? "ASSERT" : "DEASSERT",
+            //        UART_FlowDTR ? "ASSERT" : "DEASSERT", value);
         }
         return;
     }
